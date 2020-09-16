@@ -971,6 +971,168 @@ REG ADD "HKLM\System\CurrentControlSet\Control\Power\ModernSleep" /v "Coalescing
 REG ADD "HKLM\System\CurrentControlSet\Control\Power" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
 
+:: Revision Powerplan Disable Idle
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b" /v "Description" /t REG_EXPAND_SZ /d "(v2.8) Promotes low latency and high performance while eliminating sleeping features." /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b" /v "FriendlyName" /t REG_EXPAND_SZ /d "Revision™ Extreme Performance" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\0b2d69d7-a2a1-449c-9680-f91c70521c60" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\0b2d69d7-a2a1-449c-9680-f91c70521c60" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\6738e2c4-e8a5-4a42-b16a-e040e769756e" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\6738e2c4-e8a5-4a42-b16a-e040e769756e" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\80e3c60e-bb94-4ad8-bbe0-0d3195efc663" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\d3d55efd-c1ff-424e-9dc3-441be7833010" /v "DCSettingIndex" /t REG_DWORD /d "2000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\d639518a-e56d-4345-8af2-b9f32fb26109" /v "DCSettingIndex" /t REG_DWORD /d "200" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\dab60367-53fe-4fbc-825e-521d069d2456" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\dbc9e238-6de9-49e3-92cd-8c2b4946b472" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\fc95af4d-40e7-4b6d-835a-56d131dbc80e" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\02f815b5-a5cf-4c84-bf20-649d1f75d3d8\4c793e7d-a264-42e1-87d3-7a0d2f523ccd" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0d7dbae2-4294-402a-ba8e-26777e8488cd\309dce9b-bef4-4119-9921-a851fb12f0f4" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\19cbb8fa-5279-450e-9fac-8a3d5fedd0c1\12bbebe6-58d6-4636-95bb-3217ef867c1a" /v "DCSettingIndex" /t REG_BINARY /d "00000000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\1a34bdc3-7e6b-442e-a9d0-64b6ef378e84" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\25dfa149-5dd1-4736-b5ab-e8a37b5b8187" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\29f6c1db-86da-48c5-9fdb-f2b67b1f44da" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\9d7815a6-7ee4-497e-8888-515a05f02364" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\9d7815a6-7ee4-497e-8888-515a05f02364" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\bd3b718a-0680-4d9d-8ab2-e1d2b4ac806d" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\245d8541-3943-4422-b025-13a784f679b7" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\245d8541-3943-4422-b025-13a784f679b7" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\0853a681-27c8-4100-a2fd-82013e970683" /v "DCSettingIndex" /t REG_DWORD /d "100000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\0853a681-27c8-4100-a2fd-82013e970683" /v "ACSettingIndex" /t REG_DWORD /d "50" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\48e6b7a6-50f5-4782-a5d4-53bb8f07e226" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\48e6b7a6-50f5-4782-a5d4-53bb8f07e226" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\498c044a-201b-4631-a522-5c744ed4e678" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\d4e98f31-5ffe-4ce1-be31-1b38b384c009" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\d4e98f31-5ffe-4ce1-be31-1b38b384c009" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\3166bc41-7e98-4e03-b34e-ec0f5f2b218e" /v "ACSettingIndex" /t REG_DWORD /d "4294967295" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\3166bc41-7e98-4e03-b34e-ec0f5f2b218e" /v "DCSettingIndex" /t REG_DWORD /d "4294967295" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\c36f0eb4-2988-4a70-8eee-0884fc2c2433" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\d502f7ee-1dc7-4efd-a55d-f04b6f5c0545" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\d502f7ee-1dc7-4efd-a55d-f04b6f5c0545" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\44f3beca-a7c0-460e-9df2-bb8b99e0cba6\3619c3f2-afb2-4afc-b0e9-e7fef372de36" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\73cde64d-d720-4bb2-a860-c755afe77ef2" /v "DCSettingIndex" /t REG_DWORD /d "10000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\73cde64d-d720-4bb2-a860-c755afe77ef2" /v "ACSettingIndex" /t REG_DWORD /d "10000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\d6ba4903-386f-4c2c-8adb-5c21b3328d25" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\d6ba4903-386f-4c2c-8adb-5c21b3328d25" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4f971e89-eebd-4455-a8de-9e59040e7347\5ca83367-6e45-459f-a27b-476b1d01c936" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4faab71a-92e5-4726-b531-224559672d19" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\501a4d13-42af-4429-9fd1-a8218c268e20\ee12f906-d277-404b-b6da-e5fa1a576df5" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35d" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35d" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35e" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35e" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318584" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318584" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a6" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a6" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a7" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a7" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\2ddd5a84-5a71-437e-912a-db0b8c788732" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\2ddd5a84-5a71-437e-912a-db0b8c788732" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\36687f9e-e3a5-4dbf-b1dc-15eb381c6863" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\36687f9e-e3a5-4dbf-b1dc-15eb381c6864" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\3b04d4fd-1cc7-4f23-ab1c-d1337819c4bb" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\3b04d4fd-1cc7-4f23-ab1c-d1337819c4bb" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac6" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac6" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac7" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac7" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2b" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2b" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2c" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2c" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\45bcc044-d885-43e2-8605-ee0ec6e96b59" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\45bcc044-d885-43e2-8605-ee0ec6e96b59" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\465e1f50-b610-473a-ab58-00d1077dc418" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\465e1f50-b610-473a-ab58-00d1077dc419" /v "ACSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4b92d758-5a24-4851-a470-815d78aee119" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4b92d758-5a24-4851-a470-815d78aee119" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4bdaf4e9-d103-46d7-a5f0-6280121616ef" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4bdaf4e9-d103-46d7-a5f0-6280121616ef" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4d2b0152-7d5c-498b-88e2-34345392a2c5" /v "DCSettingIndex" /t REG_DWORD /d "5000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4d2b0152-7d5c-498b-88e2-34345392a2c5" /v "ACSettingIndex" /t REG_DWORD /d "5000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\5d76a2ca-e8c0-402f-a133-2158492d58ad" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd88" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd88" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd89" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd89" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300971" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300971" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300972" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300972" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\68dd2f27-a4ce-4e11-8487-3794e4135dfa" /v "ACSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\71021b41-c749-4d21-be74-a00f335d582b" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7b224883-b3cc-4d79-819f-8374152cbe7c" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7b224883-b3cc-4d79-819f-8374152cbe7c" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f5f" /v "ACSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f5f" /v "DCSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f60" /v "ACSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f60" /v "DCSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7f2492b6-60b1-45e5-ae55-773f8cd5caec" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7f2492b6-60b1-45e5-ae55-773f8cd5caec" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\893dee8e-2bef-41e0-89c6-b55d0929964c" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\893dee8e-2bef-41e0-89c6-b55d0929964c" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\893dee8e-2bef-41e0-89c6-b55d0929964d" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\8baa4a8a-14c6-4451-8e8b-14bdbd197537" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\8baa4a8a-14c6-4451-8e8b-14bdbd197537" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\93b8b6dc-0698-4d1c-9ee4-0644e900c85d" /v "DCSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\93b8b6dc-0698-4d1c-9ee4-0644e900c85d" /v "ACSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\943c8cb6-6f93-4227-ad87-e9a3feec08d1" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\943c8cb6-6f93-4227-ad87-e9a3feec08d1" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\94d3a615-a899-4ac5-ae2b-e4d8f634367f" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5aa" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5aa" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5ab" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5ab" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bae08b81-2d5e-4688-ad6a-13243356654b" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bae08b81-2d5e-4688-ad6a-13243356654b" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bc5038f7-23e0-4960-96da-33abaf5935ec" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bc5038f7-23e0-4960-96da-33abaf5935ec" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\be337238-0d82-4146-a960-4f3749d470c7" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c4581c31-89ab-4597-8e2b-9c9cab440e6b" /v "ACSettingIndex" /t REG_DWORD /d "200000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c4581c31-89ab-4597-8e2b-9c9cab440e6b" /v "DCSettingIndex" /t REG_DWORD /d "200000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c7be0679-2817-4d69-9d02-519a537ed0c6" /v "ACSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c7be0679-2817-4d69-9d02-519a537ed0c6" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\cfeda3d0-7697-4566-a922-a9086cd49dfa" /v "DCSettingIndex" /t REG_DWORD /d "45000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\cfeda3d0-7697-4566-a922-a9086cd49dfa" /v "ACSettingIndex" /t REG_DWORD /d "45000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c8" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c8" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c9" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c9" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\df142941-20f3-4edf-9a4a-9c83d3d717d1" /v "ACSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\dfd10d17-d5eb-45dd-877a-9a34ddd15c82" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\dfd10d17-d5eb-45dd-877a-9a34ddd15c82" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\e0007330-f589-42ed-a401-5ddb10e785d3" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\e0007330-f589-42ed-a401-5ddb10e785d3" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\f735a673-2066-4f80-a0c5-ddee0cf1bf5d" /v "ACSettingIndex" /t REG_DWORD /d "10" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\68afb2d9-ee95-47a8-8f50-4115088073b1" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\17aaa29b-8b43-4b94-aafe-35f64daaf1ee" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\17aaa29b-8b43-4b94-aafe-35f64daaf1ee" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\3c0bc021-c8a8-4e07-a973-6b14cbcb2b7e" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\3c0bc021-c8a8-4e07-a973-6b14cbcb2b7e" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\684c3e69-a4f7-4014-8754-d45179a56167" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\aded5e82-b909-4619-9949-f5d71dac0bcb" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\aded5e82-b909-4619-9949-f5d71dac0bcb" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\60c07fe1-0556-45cf-9903-d56e32210242" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\60c07fe1-0556-45cf-9903-d56e32210242" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\82011705-fb95-4d46-8d35-4042b1d20def" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\82011705-fb95-4d46-8d35-4042b1d20def" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\9fe527be-1b70-48da-930d-7bcf17b44990" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\9fe527be-1b70-48da-930d-7bcf17b44990" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\c763ee92-71e8-4127-84eb-f6ed043a3e3d" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\c763ee92-71e8-4127-84eb-f6ed043a3e3d" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\10778347-1370-4ee0-8bbd-33bdacaade49" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\10778347-1370-4ee0-8bbd-33bdacaade49" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\34c7b99f-9a6d-4b3c-8dc7-b6693b78cef4" /v "ACSettingIndex" /t REG_BINARY /d "00000000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\34c7b99f-9a6d-4b3c-8dc7-b6693b78cef4" /v "DCSettingIndex" /t REG_BINARY /d "00000000" /f >NUL 2>&1
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\de830923-a562-41af-a086-e3a2c6bad2da\13d09884-f74e-474a-a852-b6bde8ad03a8" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
+powercfg -setactive f3193aa7-d9d0-421a-90dc-845e70eff72b >NUL 2>&1
+powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
+powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
+
 :: Settings based on current Windows Version
 for /f "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v "ProductName"') do set "WinVersion=%%A %%B"
 ECHO %WinVersion% | find "Windows 7" > nul
@@ -978,9 +1140,6 @@ if %errorlevel% equ 0 (
 :: Mouse fix (Windows 7)
 REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000703d0a0000000000e07a14000000000050b81e0000000000c0f5280000000000" /f >NUL 2>&1
 REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
-:: Revision Powerplan without Idle
-powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
-powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
 )
 ECHO %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
@@ -990,9 +1149,8 @@ REG ADD add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "
 :: Disabling mitigation (Windows 8.1)
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
-:: Manages power policy and power policy notification delivery / Bricks Windows 7
+:: Manages power policy and power policy notification delivery and IDE Channel / Bricks Windows 7
 REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: IDE Channel / Bricks Windows 7
 REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 )
 ECHO %WinVersion% | find "Windows 10" > nul
@@ -1003,9 +1161,8 @@ REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000
 :: Disabling mitigation (Windows 10)
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "22222222222222222002000000200000" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "20000020202022220000000000000000" /f >NUL 2>&1
-:: Manages power policy and power policy notification delivery / Bricks Windows 7
+:: Manages power policy and power policy notification delivery and IDE Channel / Bricks Windows 7
 REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: IDE Channel / Bricks Windows 7
 REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 )
 
@@ -2747,17 +2904,5 @@ ECHO.
 pause
 
 ::TO TEST
-::::REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v MouseDataQueueSize /t REG_DWORD /d 0000000a /f
+::REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v MouseDataQueueSize /t REG_DWORD /d 0000000a /f
 ::REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\kbdclass\Parameters" /v KeyboardDataQueueSize /t REG_DWORD /d 0000000a /f
-
-
-::enter the following:
-::fsutil behavior query disabledeletenotify
-::------------------------------------------
-::NTFS DisableDeleteNotify = 0 - TRIM support is enabled for SSDs with NTFS
-::NTFS DisableDeleteNotify = 1 - TRIM support is disabled for SSDs with NTFS
-::NTFS DisableDeleteNotify is not currently set - TRIM support for SSDs with NTFS is not currently set, but will automatically be enabled if a SSD with NTFS is connected.
-
-:: csrss to High (Questionable) ?default?
-::REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f
-::REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f
