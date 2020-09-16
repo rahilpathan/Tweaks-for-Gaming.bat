@@ -1133,7 +1133,7 @@ REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /
 REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 )
 
-ECHO Importing minimal tweaks...
+ECHO  Importing minimal tweaks...
 :: Disable SmartScreen
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v SmartScreenEnabled /t REG_SZ /d "Off" /f > NUL 2>&1
 
@@ -2859,10 +2859,8 @@ ECHO 0.0.0.0 youtube.cleverads.vn>>%windir%\system32\drivers\etc\hosts
 
 :ending
 ECHO.
-ECHO.
 ECHO  Finished with tweaking
 ECHO  Report feedbacks, end of script
-ECHO.
 ECHO  Make sure your IP is now STATIC...
 ECHO.
 ECHO.
