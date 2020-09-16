@@ -86,6 +86,17 @@ REG ADD "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684
 ECHO Removing Kernel Blacklist...
 REG DELETE "HKLM\System\CurrentControlSet\Control\GraphicsDrivers\BlockList\Kernel" /va /reg:64 /f >NUL 2>&1
 
+ECHO Enabling Windows Components...
+dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:LegacyComponents /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
+
+ECHO Enabling AL HRTF...
+ECHO hrtf ^= true > "%appdata%\alsoft.ini"
+ECHO hrtf ^= true > "C:\ProgramData\alsoft.ini"
+
 ECHO Disabling Mitigations...
 POWERSHELL "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}"  >NUL 2>&1
 
@@ -148,17 +159,6 @@ REG ADD "HKLM\Software\Microsoft\PolicyManager\default\Update\ExcludeWUDriversIn
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UX\Settings" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-ECHO Enabling Windows Components...
-dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:LegacyComponents /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
-
-ECHO Enabling AL HRTF...
-ECHO hrtf ^= true > "%appdata%\alsoft.ini"
-ECHO hrtf ^= true > "C:\ProgramData\alsoft.ini"
-
 ECHO Disabling IoLatencyCap...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
 REG ADD "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -198,7 +198,7 @@ SET STR=!STR:HKLM\System\CurrentControlSet\services\=!
 )
 )
 
-ECHO Removing adapters off QoS Service...
+ECHO Disabling adapters in QoS Service...
 FOR /F %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services\Psched\Parameters\Adapters"') DO ( 
 REG DELETE %%a /F >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -546,9 +546,6 @@ POWERSHELL Disable-NetAdapterBinding -Name "*" -ComponentID ms_netbios -ErrorAct
 
 :: Restarting Adapter
 POWERSHELL Restart-NetAdapter -Name "Ethernet" -ErrorAction SilentlyContinue
-
-ECHO Disabling Themes...
-REG ADD "HKLM\System\CurrentControlSet\Services\Themes" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
 ECHO Disabling Drivers...
 :: Preventing Errors
@@ -1067,6 +1064,9 @@ REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v ContentEvalu
 
 :: Disable Timeline
 REG ADD "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableActivityFeed" /t REG_DWORD /d "0" /f > NUL 2>&1
+
+:: Disabling DWM (Windows 7)
+REG ADD "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Disable power throttling (Windows 10)
 REG ADD "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f >NUL 2>&1
