@@ -4,50 +4,43 @@ cd /D "%~dp0"
 
 ECHO.
 ECHO.
-ECHO Tweaking improves latency, input lag, system responsiveness, not FPS. You can
-ECHO improve min and lows frametimes, depending on your hardware but do not expect
-ECHO your computer to suddenly start hitting higher fps unless you did shit before 
-ECHO This is not realistic and that's why it's called optimization, not a miracle
+ECHO  Tweaking improves latency, input lag, system responsiveness, not FPS. You can
+ECHO  improve min and lows frametimes, depending on your hardware but do not expect
+ECHO  your computer to suddenly start hitting higher fps unless you did shit before 
+ECHO  This is not realistic and that's why it's called optimization, not a miracle
 ECHO       "If you want more FPS, buy a new one PC with better hardware."
 ECHO.
 ECHO.
-ECHO I offer a Post-Install that works flawless on MY PC and should work on others
-ECHO     For more, search for this in google: "Danske's Windows Tweaking Guide"
-ECHO  For full optimization, download Folders.zip and install all Recommendables
+ECHO  I offer a Post-Install that works flawless on MY PC and should work on others
+ECHO     For more, search and learn from Guides channel in Revision discord
 ECHO.
 ECHO.
 
-IF EXIST "C:\Windows\system32\adminrightstest" (
-rmdir C:\Windows\system32\adminrightstest >NUL 2>&1
-)
-mkdir C:\Windows\system32\adminrightstest >NUL 2>&1
-if %errorlevel% neq 0 (
-POWERSHELL "Start-Process \"%~nx0\" -Verb RunAs"
-if !errorlevel! neq 0 (
-POWERSHELL "Start-Process '%~nx0' -Verb RunAs"
-if !errorlevel! neq 0 (
-ECHO You should run this script as Admin in order to allow system changes
-ECHO The tweaker will now exit
-pause
-exit
-)
-)
-exit
-)
-rmdir C:\Windows\system32\adminrightstest >NUL 2>&1
+ECHO  Preparation, enabling and starting required services...
+ECHO.
 
-ECHO Preparation...
-ECHO Enabling and starting required services
-
-SC CONFIG Winmgmt start= auto >NUL 2>&1 
+SC CONFIG Winmgmt start= demand >NUL 2>&1 
 SC CONFIG TrustedInstaller start= demand >NUL 2>&1
 SC CONFIG AppInfo start= demand >NUL 2>&1
 SC CONFIG DeviceInstall start= demand >NUL 2>&1
+SC CONFIG Dhcp start= demand >NUL 2>&1
 SC START Winmgmt >NUL 2>&1
 SC START TrustedInstaller >NUL 2>&1
 SC START AppInfo >NUL 2>&1
 SC START DeviceInstall >NUL 2>&1
 SC START Dhcp >NUL 2>&1
+
+:: Automatically set static ip while Dhcp is enabled, thanks to Phlegm
+if "%INTERFACE%"=="" for /f "tokens=3,*" %%i in ('netsh int show interface^|find "Connected"') do set INTERFACE=%%j
+if "%IP%"=="" for /f "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "IP Address" ^| findstr [0-9]') do set IP=%%i
+if "%MASK%"=="" for /f "tokens=2 delims=()" %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr /r "(.*)"') do for %%j in (%%i) do set MASK=%%j
+if "%GATEWAY%"=="" for /f "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "Default" ^| findstr [0-9]') do set GATEWAY=%%i
+set DNS1=156.154.70.22
+set DNS2=8.8.4.4
+netsh int ipv4 set address name="%INTERFACE%" static %IP% %MASK% %GATEWAY% >NUL 2>&1
+netsh int ipv4 set dns name="%INTERFACE%" static %DNS1% primary >NUL 2>&1
+netsh int ipv4 add dns name="%INTERFACE%" %DNS2% index=2 >NUL 2>&1
+netsh int set interface name="%INTERFACE%" admin="disabled" && netsh int set interface name="%INTERFACE%" admin="enabled" >NUL 2>&1
 
 :: Removing Image File Execution Options...
 POWERSHELL "Remove-Item -Path \"HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue" >NUL 2>&1
@@ -63,51 +56,27 @@ ECHO Deleting ThreadPriority for !STR!
 )
 )
 
-:: Automatically set static ip while Dhcp is enabled, thanks to Phlegm
-if "%INTERFACE%"=="" for /f "tokens=3,*" %%i in ('netsh int show interface^|find "Connected"') do set INTERFACE=%%j
-if "%IP%"=="" for /f "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "IP Address" ^| findstr [0-9]') do set IP=%%i
-if "%MASK%"=="" for /f "tokens=2 delims=()" %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr /r "(.*)"') do for %%j in (%%i) do set MASK=%%j
-if "%GATEWAY%"=="" for /f "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "Default" ^| findstr [0-9]') do set GATEWAY=%%i
-set DNS1=156.154.70.22
-set DNS2=8.8.4.4
-netsh int ipv4 set address name="%INTERFACE%" static %IP% %MASK% %GATEWAY% >NUL 2>&1
-netsh int ipv4 set dns name="%INTERFACE%" static %DNS1% primary >NUL 2>&1
-netsh int ipv4 add dns name="%INTERFACE%" %DNS2% index=2 >NUL 2>&1
-
-:: Restart adapter
-netsh int set interface name="%INTERFACE%" admin="disabled" && netsh int set interface name="%INTERFACE%" admin="enabled" >NUL 2>&1
-
-ECHO Execution Policy to Unrestricted...
+ECHO  Execution Policy to Unrestricted...
 POWERSHELL "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
 
-ECHO Unlocking SILK Smoothness...
-REG ADD "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-ECHO Removing Kernel Blacklist...
-REG DELETE "HKLM\System\CurrentControlSet\Control\GraphicsDrivers\BlockList\Kernel" /va /reg:64 /f >NUL 2>&1
-
-ECHO Enabling Windows Components...
+ECHO  Enabling Windows Components...
 dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:LegacyComponents /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
 
-ECHO Enabling AL HRTF...
-ECHO hrtf ^= true > "%appdata%\alsoft.ini"
-ECHO hrtf ^= true > "C:\ProgramData\alsoft.ini"
-
-ECHO Disabling Mitigations...
+ECHO  Disabling Mitigations...
 POWERSHELL "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}"  >NUL 2>&1
 
-ECHO Disabling RAM compression...
+ECHO  Disabling RAM compression...
 POWERSHELL Disable-MMAgent -MemoryCompression -ApplicationPreLaunch -ErrorAction SilentlyContinue >NUL 2>&1
 
-ECHO Disabling Hibernation...
+ECHO  Disabling Hibernation...
 powercfg -h OFF >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Power" /v "HibernateEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-ECHO Disabling User Account Control...
+ECHO  Disabling User Account Control...
 REG ADD "HKLM\System\CurrentControlSet\Services\Appinfo" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableInstallerDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -120,7 +89,7 @@ REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "Ena
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "ConsentPromptBehaviorUser" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "FilterAdministratorToken" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-ECHO Disabling Windows Defender...
+ECHO  Disabling Windows Defender...
 REG ADD "HKLM\Software\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\Software\Policies\Microsoft\Windows Defender" /v "DisableBehaviorMonitoring" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\Software\Policies\Microsoft\Windows Defender" /v "DisableIOAVProtection" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -133,7 +102,7 @@ REG ADD "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "Disa
 REG ADD "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG DELETE "HKLM\Software\Microsoft\Windows NT\CurrentVersion\SPP\Clients" /f >NUL 2>&1
 
-ECHO Disabling Windows Update...
+ECHO  Disabling Windows Update...
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "BranchReadinessLevel" /t REG_SZ /d "CB" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "DeferFeatureUpdates" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "DeferQualityUpdates" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -159,7 +128,7 @@ REG ADD "HKLM\Software\Microsoft\PolicyManager\default\Update\ExcludeWUDriversIn
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UX\Settings" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-ECHO Disabling IoLatencyCap...
+ECHO  Disabling IoLatencyCap...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
 REG ADD "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -168,8 +137,6 @@ SET STR=!STR:HKLM\System\CurrentControlSet\services\=!
 SET STR=!STR:\Parameters=!
 )
 )
-
-ECHO Disabling IoLatencyCap on drivers...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\SYSTEM\DriverDatabase\DriverPackages" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
 REG ADD "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -179,7 +146,7 @@ SET STR=!STR:\Configurations\msahci_Inst\Services\storahci\Parameters=!
 )
 )
 
-ECHO Disabling HIPM and DIPM...
+ECHO  Disabling HIPM and DIPM...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /S /F "EnableHIPM"^| FINDSTR /V "EnableHIPM"') DO (
 REG ADD "%%a" /v "EnableHIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "%%a" /v "EnableDIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -189,7 +156,7 @@ SET STR=!STR:HKLM\System\CurrentControlSet\Services\=!
 )
 )
 
-ECHO Disabling all CdpUserSvcs...
+ECHO  Disabling CdpUserSvcs...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
 REG ADD "%%a" /F /V "Start" /T REG_DWORD /d 4 >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -198,7 +165,7 @@ SET STR=!STR:HKLM\System\CurrentControlSet\services\=!
 )
 )
 
-ECHO Disabling adapters in QoS Service...
+ECHO  Disabling QoS and NdisCap...
 FOR /F %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services\Psched\Parameters\Adapters"') DO ( 
 REG DELETE %%a /F >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -206,8 +173,6 @@ SET STR=%%z
 SET STR=!STR:HKLM\System\CurrentControlSet\Services\Psched\Parameters\Adapters\=!
 )
 )
-
-ECHO Disabling QoS and NdisCap...
 FOR /F "tokens=3*" %%I IN ('REG QUERY "HKLM\Software\Microsoft\Windows NT\CurrentVersion\NetworkCards" /F "ServiceName" /S^| FINDSTR /I /L "ServiceName"') DO (
 FOR /F %%a IN ('REG QUERY "HKLM\System\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}" /F "%%I" /D /E /S^| FINDSTR /I /L "\\Class\\"') DO SET "REGPATH=%%a"
 FOR /F "tokens=3*" %%n in ('REG QUERY "!REGPATH!" /V "FilterList"') DO SET newFilterList=%%n
@@ -219,7 +184,7 @@ REG ADD !REGPATH! /F /V "FilterList" /T REG_MULTI_SZ /d "!newFilterList!" >NUL 2
 )
 )
 
-ECHO Disabling USB Hub idle...
+ECHO  Disabling USB Hub and StorPort idle...
 FOR /F %%a in ('WMIC PATH Win32_USBHub GET DeviceID^| FINDSTR /L "VID_"') DO (
 REG ADD "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "EnhancedPowerManagementEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "AllowIdleIrpInD3" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -233,8 +198,6 @@ REG ADD "HKLM\System\CurrentControlSet\Control\usbflags" /v "fid_D1Latency" /t R
 REG ADD "HKLM\System\CurrentControlSet\Control\usbflags" /v "fid_D2Latency" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\usbflags" /v "fid_D3Latency" /t REG_DWORD /d "0" /f >NUL 2>&1
 )
-
-ECHO Disabling StorPort idle...
 FOR /F "tokens=*" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Enum" /S /F "StorPort"^| FINDSTR /E "StorPort"') DO (
 REG ADD "%%a" /v "EnableIdlePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -246,14 +209,14 @@ SET STR=!STR:\Device Parameters\StorPort=!
 
 IF EXIST "%WinDir%\Resources\Themes\aero\aerolite.msstyles" (
 powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\aero.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\aerolite.theme', $content)" >NUL 2>&1
-ECHO Installing Aero Lite Theme
+ECHO  Installing Aero Lite Theme
 IF EXIST "%WinDir%\Resources\Themes\light.theme" (
 powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\light.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\lightlite.theme', $content)" >NUL 2>&1 
-ECHO Installing Light Lite Theme
+ECHO  Installing Light Lite Theme
 )
 )
 
-ECHO Installing Process Explorer...
+ECHO  Installing Process Explorer...
 IF EXIST "%WINDIR%\procexp64.exe" REG ADD "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 IF EXIST "%WINDIR%\procexp64.exe" REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
 REG ADD "HKCU\SOFTWARE\Sysinternals\Process Explorer" /v "EulaAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -393,7 +356,7 @@ REG ADD "HKCU\SOFTWARE\Sysinternals\Process Explorer\ProcessColumns" /v "15" /t 
 REG ADD "HKCU\SOFTWARE\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t REG_DWORD /d "44" /f >NUL 2>&1
 REG ADD "HKCU\SOFTWARE\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 
-ECHO Network tweaks, takes time...
+ECHO  Network tweaks, takes time...
 NETSH winsock reset >NUL 2>&1
 NETSH interface teredo set state disabled >NUL 2>&1
 NETSH interface 6to4 set state disabled >NUL 2>&1
@@ -547,7 +510,7 @@ POWERSHELL Disable-NetAdapterBinding -Name "*" -ComponentID ms_netbios -ErrorAct
 :: Restarting Adapter
 POWERSHELL Restart-NetAdapter -Name "Ethernet" -ErrorAction SilentlyContinue
 
-ECHO Disabling Drivers...
+ECHO  Disabling Drivers...
 :: Preventing Errors
 REG ADD "HKLM\System\CurrentControlSet\Services\Dhcp" /v "DependOnService" /t REG_MULTI_SZ /d "NSI\0Afd" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Services\hidserv" /v "DependOnService" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
@@ -756,7 +719,7 @@ REG ADD "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d
 REG ADD "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Services\Dhcp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
-ECHO Importing main tweaks...
+ECHO  Importing main tweaks...
 :: Disable Meltdown/Spectre patches
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "EnableCfg" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -812,6 +775,12 @@ FOR /F "DELIMS=DesktopMonitor, " %%i in ('WMIC PATH Win32_DesktopMonitor GET Dev
 SET MonitorAmount=%%i
 )
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v Display%MonitorAmount%_PipeOptimizationEnable /t REG_DWORD /d "1" /f >NUL 2>&1
+
+:: Unlock Silk Smoothness
+REG ADD "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f >NUL 2>&1
+
+:: Removing Kernel Blacklist
+REG DELETE "HKLM\System\CurrentControlSet\Control\GraphicsDrivers\BlockList\Kernel" /va /reg:64 /f >NUL 2>&1
 
 :: Gpu tweaks (Questionable) Melody Basic Tweaks
 REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "DpiMapIommuContiguous" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -914,6 +883,10 @@ REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D" /v "FlipNoVsync" /t REG_DWORD
 REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D" /v "MMX Fast Path" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D\Drivers" /v "SoftwareOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\DirectDraw" /v "EmulationOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
+
+:: Enabling AL HRTF
+ECHO hrtf ^= true > "%appdata%\alsoft.ini"
+ECHO hrtf ^= true > "C:\ProgramData\alsoft.ini"
 
 :: Disable additional NTFS/ReFS mitigations
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager" /v "ProtectionMode" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -1160,53 +1133,7 @@ REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /
 REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 )
 
-ECHO BCD Params...
-:: Disable synthetic timer
-BCDEDIT /deletevalue useplatformclock >NUL 2>&1
-:: Constantly pool interrupts, dynamic tick was implemented as a power saving feature for laptops
-BCDEDIT /set disabledynamictick yes >NUL 2>&1
-:: Disable synthetic tick
-BCDEDIT /set useplatformtick Yes >NUL 2>&1
-:: Sync Policy
-BCDEDIT /set tscsyncpolicy Enhanced >NUL 2>&1
-:: Disable Data Execution Prevention Security Feature
-BCDEDIT /set nx AlwaysOff >NUL 2>&1
-:: Disable Emergency Management Services
-BCDEDIT /set ems No >NUL 2>&1
-BCDEDIT /set bootems No >NUL 2>&1
-:: Disable code integrity services
-BCDEDIT /set integrityservices disable >NUL 2>&1
-:: Disable TPM Boot Entropy policy Security Feature
-BCDEDIT /set tpmbootentropy ForceDisable >NUL 2>&1
-:: Change bootmenupolicy to be able to F8
-BCDEDIT /set bootmenupolicy Legacy >NUL 2>&1
-:: Disable kernel debugger
-BCDEDIT /set debug No >NUL 2>&1
-:: Disable Virtual Secure Mode from Hyper-V
-BCDEDIT /set hypervisorlaunchtype Off >NUL 2>&1
-:: Disable the Controls the loading of Early Launch Antimalware (ELAM) drivers
-BCDEDIT /set disableelamdrivers Yes >NUL 2>&1
-:: Disable some of the kernel memory mitigations, gamers dont use SGX under any possible circumstance
-BCDEDIT /set isolatedcontext No >NUL 2>&1
-BCDEDIT /set allowedinmemorysettings 0x0 >NUL 2>&1
-:: Disable DMA memory protection and cores isolation
-BCDEDIT /set vm No >NUL 2>&1
-BCDEDIT /set vsmlaunchtype Off >NUL 2>&1
-:: Enable X2Apic and enable Memory Mapping for PCI-E devices
-:: (for best results, further more enable MSI mode for all devices using MSI utility or manually)
-BCDEDIT /set x2apicpolicy Enable >NUL 2>&1
-BCDEDIT /set configaccesspolicy Default >NUL 2>&1
-BCDEDIT /set MSI Default >NUL 2>&1
-BCDEDIT /set usephysicaldestination No >NUL 2>&1
-BCDEDIT /set usefirmwarepcisettings No >NUL 2>&1
-:: Questionable
-BCDEDIT /set linearaddress57 OptOut >NUL 2>&1
-BCDEDIT /set increaseuserva 268435328 >NUL 2>&1
-BCDEDIT /set firstmegabytepolicy UseAll >NUL 2>&1
-BCDEDIT /set avoidlowmemory 0x8000000 >NUL 2>&1
-BCDEDIT /set nolowmem Yes >NUL 2>&1
-
-ECHO Importing registry...
+ECHO Importing minimal tweaks...
 :: Disable SmartScreen
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v SmartScreenEnabled /t REG_SZ /d "Off" /f > NUL 2>&1
 
@@ -1457,7 +1384,53 @@ REG DELETE "HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense" /f > NU
 :: Remove Firewall Rules
 REG DELETE "HKLM\System\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" /f >NUL 2>&1
 
-ECHO Debloating...
+ECHO  BCD Params...
+:: Disable synthetic timer
+BCDEDIT /deletevalue useplatformclock >NUL 2>&1
+:: Constantly pool interrupts, dynamic tick was implemented as a power saving feature for laptops
+BCDEDIT /set disabledynamictick yes >NUL 2>&1
+:: Disable synthetic tick
+BCDEDIT /set useplatformtick Yes >NUL 2>&1
+:: Sync Policy
+BCDEDIT /set tscsyncpolicy Enhanced >NUL 2>&1
+:: Disable Data Execution Prevention Security Feature
+BCDEDIT /set nx AlwaysOff >NUL 2>&1
+:: Disable Emergency Management Services
+BCDEDIT /set ems No >NUL 2>&1
+BCDEDIT /set bootems No >NUL 2>&1
+:: Disable code integrity services
+BCDEDIT /set integrityservices disable >NUL 2>&1
+:: Disable TPM Boot Entropy policy Security Feature
+BCDEDIT /set tpmbootentropy ForceDisable >NUL 2>&1
+:: Change bootmenupolicy to be able to F8
+BCDEDIT /set bootmenupolicy Legacy >NUL 2>&1
+:: Disable kernel debugger
+BCDEDIT /set debug No >NUL 2>&1
+:: Disable Virtual Secure Mode from Hyper-V
+BCDEDIT /set hypervisorlaunchtype Off >NUL 2>&1
+:: Disable the Controls the loading of Early Launch Antimalware (ELAM) drivers
+BCDEDIT /set disableelamdrivers Yes >NUL 2>&1
+:: Disable some of the kernel memory mitigations, gamers dont use SGX under any possible circumstance
+BCDEDIT /set isolatedcontext No >NUL 2>&1
+BCDEDIT /set allowedinmemorysettings 0x0 >NUL 2>&1
+:: Disable DMA memory protection and cores isolation
+BCDEDIT /set vm No >NUL 2>&1
+BCDEDIT /set vsmlaunchtype Off >NUL 2>&1
+:: Enable X2Apic and enable Memory Mapping for PCI-E devices
+:: (for best results, further more enable MSI mode for all devices using MSI utility or manually)
+BCDEDIT /set x2apicpolicy Enable >NUL 2>&1
+BCDEDIT /set configaccesspolicy Default >NUL 2>&1
+BCDEDIT /set MSI Default >NUL 2>&1
+BCDEDIT /set usephysicaldestination No >NUL 2>&1
+BCDEDIT /set usefirmwarepcisettings No >NUL 2>&1
+:: Questionable
+BCDEDIT /set linearaddress57 OptOut >NUL 2>&1
+BCDEDIT /set increaseuserva 268435328 >NUL 2>&1
+BCDEDIT /set firstmegabytepolicy UseAll >NUL 2>&1
+BCDEDIT /set avoidlowmemory 0x8000000 >NUL 2>&1
+BCDEDIT /set nolowmem Yes >NUL 2>&1
+
+ECHO  Debloating softwares...
 :: Google Chrome
 taskkill /f /im chrome.exe >NUL 2>&1
 schtasks.exe /change /TN "\GoogleUpdateTaskMachineCore" /Disable >NUL 2>&1
@@ -1605,7 +1578,7 @@ del /f/s/q "%appdata%\Spotify\locales\zh-Hant.mo" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-TW.pak" >NUL 2>&1
 REG DELETE "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Spotify" /f >NUL 2>&1
 
-REM Making the same hosts file by Dreamjow or Revision
+ECHO  Importing Revi hosts file...
 del /F /Q "%WINDIR%\system32\drivers\etc\hosts" >NUL 2>&1
 ECHO 0.0.0.0 telemetry.microsoft.com>>%windir%\system32\drivers\etc\hosts
 ECHO 0.0.0.0 vortex-win.data.microsoft.com>>%windir%\system32\drivers\etc\hosts
@@ -2887,12 +2860,10 @@ ECHO 0.0.0.0 youtube.cleverads.vn>>%windir%\system32\drivers\etc\hosts
 :ending
 ECHO.
 ECHO.
-ECHO Finished with tweaking
-ECHO Report feedbacks, end of script
+ECHO  Finished with tweaking
+ECHO  Report feedbacks, end of script
 ECHO.
-ECHO Make sure your IP is now STATIC
-ECHO Network Connections Panel oppened
-C:\Windows\System32\ncpa.cpl
+ECHO  Make sure your IP is now STATIC...
 ECHO.
 ECHO.
 pause
