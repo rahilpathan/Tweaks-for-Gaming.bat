@@ -49,9 +49,6 @@ SC START AppInfo >NUL 2>&1
 SC START DeviceInstall >NUL 2>&1
 SC START Dhcp >NUL 2>&1
 
-:: Downloading necessary files
-certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/procexp64.exe %WINDIR%/procexp64.exe >NUL 2>&1
-
 :: Removing Image File Execution Options...
 POWERSHELL "Remove-Item -Path \"HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue" >NUL 2>&1
 
