@@ -66,6 +66,10 @@ dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
 
+ECHO Enabling MSI for GPU...
+for /f %%x in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "VEN_"') do (
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\%%x\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f
+
 ECHO  Disabling Mitigations...
 POWERSHELL "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}"  >NUL 2>&1
 
@@ -1146,7 +1150,7 @@ REG ADD "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableActivityFeed
 :: Disabling DWM (Windows 7)
 REG ADD "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-:: Helps DWM get better possibilty
+:: Seens like this reg improves dwm performance
 REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "AltTabSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Disable power throttling (Windows 10)
