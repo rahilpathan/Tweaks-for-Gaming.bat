@@ -52,7 +52,6 @@ FOR /F "tokens=*" %%z IN ("%%a") DO (
 SET STR=%%z
 SET STR=!STR:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\=!
 SET STR=!STR:\Parameters=!
-ECHO Deleting ThreadPriority for !STR!
 )
 )
 
