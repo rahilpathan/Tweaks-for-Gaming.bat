@@ -66,8 +66,8 @@ dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>
 dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
 
 ECHO Enabling MSI for GPU...
-for /f %%x in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "VEN_"') do (
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\%%x\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f
+for /f %%g in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "VEN_"') do (
+REG ADD "HKLM\SYSTEM\CurrentControlSet\Enum\%%g\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f
 )
 
 ECHO  Disabling Mitigations...
