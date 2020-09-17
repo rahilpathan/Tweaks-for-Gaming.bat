@@ -1146,6 +1146,9 @@ REG ADD "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableActivityFeed
 :: Disabling DWM (Windows 7)
 REG ADD "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 
+:: Helps DWM get better possibilty
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "AltTabSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
+
 :: Disable power throttling (Windows 10)
 REG ADD "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f >NUL 2>&1
 
