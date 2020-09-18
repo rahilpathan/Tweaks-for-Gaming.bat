@@ -24,11 +24,17 @@ SC CONFIG TrustedInstaller start= demand >NUL 2>&1
 SC CONFIG AppInfo start= demand >NUL 2>&1
 SC CONFIG DeviceInstall start= demand >NUL 2>&1
 SC CONFIG Dhcp start= demand >NUL 2>&1
+SC CONFIG w32time start=demand >NUL 2>&1
 SC START Winmgmt >NUL 2>&1
 SC START TrustedInstaller >NUL 2>&1
 SC START AppInfo >NUL 2>&1
 SC START DeviceInstall >NUL 2>&1
 SC START Dhcp >NUL 2>&1
+SC START w32time >NUL 2>&1
+
+:: Resync time based on your timezone
+w32tm /config /manualpeerlist:time.windows.com >NUL 2>&1
+w32tm /resync /rediscover >NUL 2>&1
 
 :: Automatically set static ip while Dhcp is enabled, thanks to Phlegm
 if "%INTERFACE%"=="" for /f "tokens=3,*" %%i in ('netsh int show interface^|find "Connected"') do set INTERFACE=%%j
