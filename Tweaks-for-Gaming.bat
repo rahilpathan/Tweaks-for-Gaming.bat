@@ -8,12 +8,11 @@ ECHO  Do not expect your computer to hit higher fps unless you did shit before
 ECHO  This is not realistic and that's why it's called optimization, not a miracle
 ECHO.
 ECHO.
-ECHO  Automatization is never the best way to do things, please learn tweaking
+ECHO  Automatization is not the best way, please learn tweaking
 ECHO  You can start reading all guides on Revision discord (revi.cc)
 ECHO.
-ECHO  Preparation, enabling and starting required services...
-ECHO.
 
+:: Enabling and starting required services...
 SC CONFIG Winmgmt start= demand >NUL 2>&1 
 SC CONFIG TrustedInstaller start= demand >NUL 2>&1
 SC CONFIG AppInfo start= demand >NUL 2>&1
@@ -2984,9 +2983,6 @@ ECHO 0.0.0.0 youtube.cleverads.vn>>%windir%\system32\drivers\etc\hosts
 ECHO.
 ECHO  Finished with tweaking
 ECHO  Report feedbacks, end of script
-ECHO  Make sure your IP is now STATIC...
-ECHO.
-ECHO.
 pause
 
 ::TO TEST MANY VALUES
