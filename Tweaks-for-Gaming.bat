@@ -67,6 +67,7 @@ for /F "tokens=1-4 delims=./" %%a in ("%1") do (
 
 echo  Preparation, removing protections and starting services
 powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
+powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
 sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
 sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >NUL 2>&1
 sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
@@ -172,7 +173,6 @@ reg add "%%a" /v "EnableIdlePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
 )
 
 echo  Tweaking Image File Execution
-powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
 
