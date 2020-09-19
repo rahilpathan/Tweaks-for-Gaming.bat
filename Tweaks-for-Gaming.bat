@@ -11,30 +11,7 @@ echo  Automatization is not the best way, please learn tweaking
 echo  You can start reading all guides on Revision discord (revi.cc)
 echo.
 
-:: Enabling and starting required services...
-powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
-sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
-sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >NUL 2>&1
-sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
-sc config DeviceInstall start=demand >NUL 2>&1 & sc start DeviceInstall >NUL 2>&1
-sc config Dhcp start=demand >NUL 2>&1 & sc start Dhcp >NUL 2>&1
-sc config w32time start=demand >NUL 2>&1 & sc start w32time >NUL 2>&1
-
-:: Resync time
-w32tm /config /manualpeerlist:time.windows.com >NUL 2>&1
-w32tm /resync /rediscover >NUL 2>&1
-
-:: Set powerplans
-powercfg -import %WINDIR%\RevisionPowerPlanV2.8.pow >NUL 2>&1
-powercfg -import %WINDIR%\retard.pow >NUL 2>&1
-powercfg -import %WINDIR%\HighestPerformanceEnableIdle.pow >NUL 2>&1
-powercfg -import %WINDIR%\HighestPerformanceDisableIdle.pow >NUL 2>&1
-for /f "tokens=4" %%f in ('powercfg -list ^| findstr /C:"Revision"') do set GUID=%%f >NUL 2>&1
-powercfg -setactive %GUID% >NUL 2>&1
-powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
-powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
-
-:: Automatically set static ip while Dhcp is enabled, thanks to Phlegm
+::  Automatically set static ip, Thanks to Phlegm
 if "%INTERFACE%"=="" for /F "tokens=3,*" %%i in ('netsh int show interface^|find "Connected"') do set INTERFACE=%%j
 if "%IP%"=="" for /F "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "IP Address" ^| findstr [0-9]') do set IP=%%i
 if "%MASK%"=="" for /F "tokens=2 delims=()" %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr /r "(.*)"') do for %%j in (%%i) do set MASK=%%j
@@ -46,30 +23,15 @@ netsh int ipv4 set dns name="%INTERFACE%" static %DNS1% primary >NUL 2>&1
 netsh int ipv4 add dns name="%INTERFACE%" %DNS2% index=2 >NUL 2>&1
 netsh int set interface name="%INTERFACE%" admin="disabled" && netsh int set interface name="%INTERFACE%" admin="enabled" >NUL 2>&1
 
-:: Image File Execution Options...
-powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue" >NUL 2>&1
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
 
-:: Enabling Windows Components...
-dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:LegacyComponents /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
-dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
-
-:: Enabling MSI for GPU...
-for /F %%g in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "VEN_"') do (
-reg add "HKLM\SYSTEM\CurrentControlSet\Enum\%%g\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f >NUL 2>&1
-)
-
-:: Disabling Mitigations...
-powershell "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}"  >NUL 2>&1
-
-:: Disabling RAM compression...
-powershell Disable-MMAgent -MemoryCompression -ApplicationPreLaunch -ErrorAction SilentlyContinue >NUL 2>&1
-
-:: Disabling User Account Control...
+echo  Preparation, removing protections and starting services
+:: ExecutionPolicy,UAC,WinUpdate,WinDefender
+powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
+sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
+sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >NUL 2>&1
+sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
+sc config DeviceInstall start=demand >NUL 2>&1 & sc start DeviceInstall >NUL 2>&1
+sc config Dhcp start=demand >NUL 2>&1 & sc start Dhcp >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableInstallerDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "PromptOnSecureDesktop" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -80,8 +42,6 @@ reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "Val
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableUIADesktopToggle" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "ConsentPromptBehaviorUser" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "FilterAdministratorToken" /t REG_DWORD /d "0" /f >NUL 2>&1
-
-:: Disabling Windows Update and Defender...
 reg add "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "BranchReadinessLevel" /t REG_SZ /d "CB" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "DeferFeatureUpdates" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "DeferQualityUpdates" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -116,70 +76,47 @@ reg add "HKLM\Software\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg delete "HKLM\Software\Microsoft\Windows NT\CurrentVersion\SPP\Clients" /f >NUL 2>&1
 
-:: Disabling IoLatencyCap...
-for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
-reg add "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\services\=!
-set STR=!STR:\Parameters=!
+:: Installing AeroLite
+IF EXIST "%WinDir%\Resources\Themes\aero\aerolite.msstyles" (
+powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\aero.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\aerolite.theme', $content)"
+IF EXIST "%WinDir%\Resources\Themes\light.theme" (
+powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\light.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\lightlite.theme', $content)" 
 )
 )
-for /F "eol=E" %%a in ('reg query "HKLM\SYSTEM\DriverDatabase\DriverPackages" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
-reg add "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\SYSTEM\DriverDatabase\DriverPackages\=!
-set STR=!STR:\Configurations\msahci_Inst\Services\storahci\Parameters=!
-)
-)
+:: Installing Process Explorer...
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
 
-:: Disabling HIPM and DIPM...
-for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /S /F "EnableHIPM"^| FINDSTR /V "EnableHIPM"') DO (
-reg add "%%a" /v "EnableHIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "%%a" /v "EnableDIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\Services\=!
-)
-)
+echo  Adding powerplans
+powercfg -restoredefaultschemes >NUL 2>&1
+powercfg -import %WINDIR%\RevisionPowerPlanV2.8.pow >NUL 2>&1
+powercfg -import %WINDIR%\retard.pow >NUL 2>&1
+powercfg -import %WINDIR%\HighestPerformanceEnableIdle.pow >NUL 2>&1
+powercfg -import %WINDIR%\HighestPerformanceDisableIdle.pow >NUL 2>&1
+for /f "tokens=4" %%f in ('powercfg -list ^| findstr /C:"Revision"') do set GUID=%%f
+powercfg -setactive %GUID% >NUL 2>&1
+powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
+powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
 
-:: Disabling CdpUserSvcs...
-for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
-reg add "%%a" /F /V "Start" /T REG_DWORD /d 4 >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\services\=!
-)
+echo  Enabling Windows Components
+dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:LegacyComponents /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
+dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
+
+echo  Enabling MSI-mode for GPU
+for /F %%g in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "VEN_"') do (
+reg add "HKLM\SYSTEM\CurrentControlSet\Enum\%%g\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f >NUL 2>&1
 )
 
-:: Disabling QoS and NdisCap...
-for /F %%a in ('reg query "HKLM\System\CurrentControlSet\Services\Psched\Parameters\Adapters"') DO ( 
-reg delete %%a /F >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\Services\Psched\Parameters\Adapters\=!
-)
-)
-for /F "tokens=3*" %%I IN ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion\NetworkCards" /F "ServiceName" /S^| FINDSTR /I /L "ServiceName"') DO (
-for /F %%a IN ('reg query "HKLM\System\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}" /F "%%I" /D /E /S^| FINDSTR /I /L "\\Class\\"') DO set "REGPATH=%%a"
-for /F "tokens=3*" %%n in ('reg query "!REGPATH!" /V "FilterList"') DO set newFilterList=%%n
-set newFilterList=!newFilterList:-{B5F4D659-7DAA-4565-8E41-BE220ED60542}=!
-set newFilterList=!newFilterList:-{430BDADD-BAB0-41AB-A369-94B67FA5BE0A}=!
-reg query !REGPATH! /V "FilterList" | FINDSTR /I "{B5F4D659-7DAA-4565-8E41-BE220ED60542} {430BDADD-BAB0-41AB-A369-94B67FA5BE0A}" >NUL 2>&1
-IF NOT ERRORLEVEL 1 (
-reg add !REGPATH! /F /V "FilterList" /T REG_MULTI_SZ /d "!newFilterList!" >NUL 2>&1
-)
-)
-
-:: Disabling USB Hub and StorPort idle...
+echo  Disabling USB Hub and StorPort idle
 for /F %%a in ('WMIC PATH Win32_USBHub GET DeviceID^| FINDSTR /L "VID_"') DO (
 reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "EnhancedPowerManagementEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "AllowIdleIrpInD3" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "DeviceSelectiveSuspended" /t REG_DWORD /d "0" /f >NUL 2>&1	
-reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "SelectiveSuspendEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1	
+reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "DeviceSelectiveSuspended" /t REG_DWORD /d "0" /f	>NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "SelectiveSuspendEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "SelectiveSuspendOn" /t REG_DWORD /d "0" /f >NUL 2>&1	
 reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "fid_D1Latency" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "fid_D2Latency" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -190,33 +127,45 @@ reg add "HKLM\System\CurrentControlSet\Control\usbflags" /v "fid_D3Latency" /t R
 )
 for /F "tokens=*" %%a in ('reg query "HKLM\System\CurrentControlSet\Enum" /S /F "StorPort"^| FINDSTR /E "StorPort"') DO (
 reg add "%%a" /v "EnableIdlePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
+)
+
+echo  Tweaking Image File Execution
+powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
+
+echo  Tweaking Services
+for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
+reg add "%%a" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 for /F "tokens=*" %%z IN ("%%a") DO (
 set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\Enum\=!
-set STR=!STR:\Device Parameters\StorPort=!
+set STR=!STR:HKLM\System\CurrentControlSet\services\=!
+)
+)
+for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /S /F "EnableHIPM"^| FINDSTR /V "EnableHIPM"') DO (
+reg add "%%a" /v "EnableHIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "%%a" /v "EnableDIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
+for /F "tokens=*" %%z IN ("%%a") DO (
+set STR=%%z
+set STR=!STR:HKLM\System\CurrentControlSet\Services\=!
+)
+)
+for /F "eol=E" %%a in ('reg query "HKLM\System\ControlSet001\Services" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
+reg add "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
+for /F "tokens=*" %%z IN ("%%a") DO (
+set STR=%%z
+set STR=!STR:HKLM\System\ControlSet001\services\=!
+set STR=!STR:\Parameters=!
 )
 )
 
-:: Installing AeroLite
-IF EXIST "%WinDir%\Resources\Themes\aero\aerolite.msstyles" (
-powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\aero.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\aerolite.theme', $content)" >NUL 2>&1
-IF EXIST "%WinDir%\Resources\Themes\light.theme" (
-powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\light.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\lightlite.theme', $content)" >NUL 2>&1 
-)
-)
-
-:: Installing Process Explorer...
-IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
-
-:: Network tweaks, takes time...
+echo  Tweaking Network (Be Patient...)
 netsh winsock reset >NUL 2>&1
 netsh interface teredo set state disabled >NUL 2>&1
 netsh interface 6to4 set state disabled >NUL 2>&1
 netsh int isatap set state disable >NUL 2>&1
 netsh int ip set global neighborcachelimit=4096 >NUL 2>&1
 netsh int ip set global taskoffload=disabled >NUL 2>&1
-netsh int ip set global loopbackworkercount = %NUMBER_OF_PROCESSORS% >NUL 2>&1
 netsh int tcp set global autotuninglevel=disable >NUL 2>&1
 netsh int tcp set global chimney=disabled >NUL 2>&1
 netsh int tcp set global dca=enabled >NUL 2>&1
@@ -437,8 +386,6 @@ reg add "HKLM\System\CurrentControlSet\Services\cdfs" /v "Start" /t REG_DWORD /d
 reg add "HKLM\System\CurrentControlSet\Services\cdrom" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Common Log / General-purpose logging service (W8Default=0)
 reg add "HKLM\System\CurrentControlSet\Services\CLFS" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: (Compbatt for W7) (For laptops) - Microsoft ACPI Control Method Battery Driver (W8Default=3)
-reg add "HKLM\System\CurrentControlSet\Services\CmBatt" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Composite Bus Enumerator Driver (W8Default=3)
 reg add "HKLM\System\CurrentControlSet\Services\CompositeBus" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Console Driver (W8Default=3)
@@ -569,6 +516,16 @@ reg add "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d
 reg add "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Services\Dhcp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
+echo  Importing Main tweaks
+:: Process Scheduling
+reg add "HKLM\System\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "37" /f >NUL 2>&1
+
+:: Disabling Mitigations...
+powershell "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}" >NUL 2>&1
+
+:: Disabling RAM compression...
+powershell Disable-MMAgent -MemoryCompression -ApplicationPreLaunch -ErrorAction SilentlyContinue >NUL 2>&1
+
 :: Disable Meltdown/Spectre patches
 reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "EnableCfg" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -623,100 +580,7 @@ WMIC computersystem where name="%computername%" set AutomaticManagedPagefile=Fal
 WMIC pagefileset where name="C:\\pagefile.sys" set InitialSize=32768,MaximumSize=32768 >NUL 2>&1
 :no16gb
 
-:: Process Scheduling
-reg add "HKLM\System\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "37" /f >NUL 2>&1
-
-:: BCD Params...
-:: Constantly pool interrupts, dynamic tick was implemented as a power saving feature for laptops
-bcdedit /set disabledynamictick yes >NUL 2>&1
-:: Disable synthetic tick
-bcdedit /set useplatformtick Yes >NUL 2>&1
-:: Sync Policy
-bcdedit /set tscsyncpolicy Enhanced >NUL 2>&1
-:: Disable Data Execution Prevention Security Feature
-bcdedit /set nx AlwaysOff >NUL 2>&1
-:: Disable Emergency Management Services
-bcdedit /set ems No >NUL 2>&1
-bcdedit /set bootems No >NUL 2>&1
-:: Disable code integrity services
-bcdedit /set integrityservices disable >NUL 2>&1
-:: Disable TPM Boot Entropy policy Security Feature
-bcdedit /set tpmbootentropy ForceDisable >NUL 2>&1
-:: Change bootmenupolicy to be able to F8
-bcdedit /set bootmenupolicy Legacy >NUL 2>&1
-:: Disable kernel debugger
-bcdedit /set debug No >NUL 2>&1
-:: Disable Virtual Secure Mode from Hyper-V
-bcdedit /set hypervisorlaunchtype Off >NUL 2>&1
-:: Disable the Controls the loading of Early Launch Antimalware (ELAM) drivers
-bcdedit /set disableelamdrivers Yes >NUL 2>&1
-:: Disable some of the kernel memory mitigations, gamers dont use SGX under any possible circumstance
-bcdedit /set isolatedcontext No >NUL 2>&1
-bcdedit /set allowedinmemorysettings 0x0 >NUL 2>&1
-:: Disable DMA memory protection and cores isolation
-bcdedit /set vm No >NUL 2>&1
-bcdedit /set vsmlaunchtype Off >NUL 2>&1
-:: Enable X2Apic and enable Memory Mapping for PCI-E devices
-:: (for best results, further more enable MSI mode for all devices using MSI utility or manually)
-bcdedit /set x2apicpolicy Enable >NUL 2>&1
-bcdedit /set configaccesspolicy Default >NUL 2>&1
-bcdedit /set MSI Default >NUL 2>&1
-bcdedit /set usephysicaldestination No >NUL 2>&1
-bcdedit /set usefirmwarepcisettings No >NUL 2>&1
-
-:: Settings based on current Windows Version
-for /F "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v "ProductName"') do set "WinVersion=%%A %%B"
-echo %WinVersion% | find "Windows 7" > nul
-if %errorlevel% equ 0 (
-:: Disabling DWM
-reg add "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
-:: Mouse fix
-reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000703d0a0000000000e07a14000000000050b81e0000000000c0f5280000000000" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
-:: Safety measures
-reg add "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "2" /f >NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
-)
-echo %WinVersion% | find "Windows 8.1" > nul
-if %errorlevel% equ 0 (
-:: Mouse fix
-reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
-reg add add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
-:: Disabling mitigation
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
-)
-echo %WinVersion% | find "Windows 10" > nul
-if %errorlevel% equ 0 (
-:: Disable FSO Globally and GameDVR
-reg add "HKCU\Software\Microsoft\GameBar" /v "ShowStartupPanel" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Software\Microsoft\GameBar" /v "GamePanelStartupTipIndex" /t REG_DWORD /d "3" /f >NUL 2>&1
-reg add "HKCU\Software\Microsoft\GameBar" /v "AllowAutoGameMode" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Software\Microsoft\GameBar" /v "UseNexusForGameBarEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehaviorMode" /t REG_DWORD /d "2" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehavior" /t REG_DWORD /d "2" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_HonorUserFSEBehaviorMode" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_DXGIHonorFSEWindowsCompatible" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_EFSEFeatureFlags" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\System\GameConfigStore" /v "GameDVR_DSEBehavior" /t REG_DWORD /d "2" /f >NUL 2>&1
-reg add "HKLM\Software\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR" /v "value" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\GameDVR" /v "AllowGameDVR" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKU\.DEFAULT\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg delete "HKCU\System\GameConfigStore\Children" /f >NUL 2>&1
-reg delete "HKCU\System\GameConfigStore\Parents" /f >NUL 2>&1
-:: Disable power throttling
-reg add "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-:: Mouse fix
-reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
-:: Disabling mitigation
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "22222222222222222002000000200000" /f >NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "20000020202022220000000000000000" /f >NUL 2>&1
-)
-
+echo  Importing Minimal tweaks
 :: Multimedia Profile
 reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "10" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d "6" /f >NUL 2>&1
@@ -956,30 +820,30 @@ reg add "HKLM\Software\Policies\Microsoft\TabletPC" /v "TurnOffPenFeedback" /t R
 reg add "HKLM\System\CurrentControlSet\Control\Remote Assistance" /v "fAllowToGetHelp" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Disable Telemetry
-reg add "HKCU\Control Panel\International\User Profile" /v "HttpAcceptLanguageOptOut" /t REG_DWORD /d "1" /f > NUL 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" /v "Enabled" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v "EnableWebContentEvaluation" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" /v "value" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" /v "value" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config" /v "DownloadMode" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell" /v "UseActionCenterExperience" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "HideSCAHealth" /t REG_DWORD /d "1" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\AdvertisingInfo" /v "DisabledByGroupPolicy" /t REG_DWORD /d "1" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\EnhancedStorageDevices" /v "TCGSecurityActivationDisabled" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\safer\codeidentifiers" /v "authenticodeenabled" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Error Reporting" /v "DontSendAdditionalData" /t REG_DWORD /d "1" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowIndexingEncryptedStoresOrItems" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowSearchToUseLocation" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AlwaysUseAutoLangDetection" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "ConnectedSearchUseWeb" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f > NUL 2>&1
-reg add "HKLM\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Control\WMI\AutoLogger\AutoLogger-Diagtrack-Listener" /v "Start" /t REG_DWORD /d "0" /f > NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Control\WMI\AutoLogger\SQMLogger" /v "Start" /t REG_DWORD /d "0" /f > NUL 2>&1
+reg add "HKCU\Control Panel\International\User Profile" /v "HttpAcceptLanguageOptOut" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" /v "Enabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v "EnableWebContentEvaluation" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" /v "value" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" /v "value" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config" /v "DownloadMode" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell" /v "UseActionCenterExperience" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "HideSCAHealth" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\AdvertisingInfo" /v "DisabledByGroupPolicy" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\EnhancedStorageDevices" /v "TCGSecurityActivationDisabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\safer\codeidentifiers" /v "authenticodeenabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Error Reporting" /v "DontSendAdditionalData" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowIndexingEncryptedStoresOrItems" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowSearchToUseLocation" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AlwaysUseAutoLangDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "ConnectedSearchUseWeb" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKLM\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Control\WMI\AutoLogger\AutoLogger-Diagtrack-Listener" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Control\WMI\AutoLogger\SQMLogger" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
 echo "" > C:\ProgramData\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl >NUL 2>&1
 
 :: Disable Firewall
@@ -1005,7 +869,7 @@ reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableCreden
 reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableCredentialsSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableDesktopThemeSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableDesktopThemeSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSync" /t Reg_DWORD /d "2" /f  >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableStartLayoutSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableStartLayoutSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
@@ -1037,10 +901,107 @@ reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWeb
 reg add "HKLM\Software\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Remove Metadata Tracking
-reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\Device Metadata" /f > NUL 2>&1
+reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\Device Metadata" /f >NUL 2>&1
 
 :: Remove Storage Sense
-reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense" /f > NUL 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense" /f >NUL 2>&1
+
+echo  BCD Params
+:: Constantly pool interrupts, dynamic tick was implemented as a power saving feature for laptops
+bcdedit /set disabledynamictick yes >NUL 2>&1
+:: Disable synthetic tick
+bcdedit /set useplatformtick Yes >NUL 2>&1
+:: Sync Policy
+bcdedit /set tscsyncpolicy Enhanced >NUL 2>&1
+:: Disable Data Execution Prevention Security Feature
+bcdedit /set nx AlwaysOff >NUL 2>&1
+:: Disable Emergency Management Services
+bcdedit /set ems No >NUL 2>&1
+bcdedit /set bootems No >NUL 2>&1
+:: Disable code integrity services
+bcdedit /set integrityservices disable >NUL 2>&1
+:: Disable TPM Boot Entropy policy Security Feature
+bcdedit /set tpmbootentropy ForceDisable >NUL 2>&1
+:: Change bootmenupolicy to be able to F8
+bcdedit /set bootmenupolicy Legacy >NUL 2>&1
+:: Disable kernel debugger
+bcdedit /set debug No >NUL 2>&1
+:: Disable Virtual Secure Mode from Hyper-V
+bcdedit /set hypervisorlaunchtype Off >NUL 2>&1
+:: Disable the Controls the loading of Early Launch Antimalware (ELAM) drivers
+bcdedit /set disableelamdrivers Yes >NUL 2>&1
+:: Disable some of the kernel memory mitigations, gamers dont use SGX under any possible circumstance
+bcdedit /set isolatedcontext No >NUL 2>&1
+bcdedit /set allowedinmemorysettings 0x0 >NUL 2>&1
+:: Disable DMA memory protection and cores isolation
+bcdedit /set vm No >NUL 2>&1
+bcdedit /set vsmlaunchtype Off >NUL 2>&1
+:: Enable X2Apic and enable Memory Mapping for PCI-E devices
+:: (for best results, further more enable MSI mode for all devices using MSI utility or manually)
+bcdedit /set x2apicpolicy Enable >NUL 2>&1
+bcdedit /set configaccesspolicy Default >NUL 2>&1
+bcdedit /set MSI Default >NUL 2>&1
+bcdedit /set usephysicaldestination No >NUL 2>&1
+bcdedit /set usefirmwarepcisettings No >NUL 2>&1
+
+echo  Settings based on Windows Version
+for /F "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v "ProductName"') do set "WinVersion=%%A %%B"
+echo %WinVersion% | find "Windows 7" > nul
+if %errorlevel% equ 0 (
+:: Downloading finisher
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows7Finisher.bat %userprofile%/Desktop/Windows7Finisher.bat >NUL 2>&1
+:: Disabling DWM
+reg add "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
+:: Mouse fix
+reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000703d0a0000000000e07a14000000000050b81e0000000000c0f5280000000000" /f >NUL 2>&1
+reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
+:: Safety measures
+reg add "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "2" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
+)
+echo %WinVersion% | find "Windows 8.1" > nul
+if %errorlevel% equ 0 (
+:: Downloading finisher
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows8Finisher.bat %userprofile%/Desktop/Windows8Finisher.bat >NUL 2>&1
+:: Mouse fix
+reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
+reg add add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
+:: Disabling mitigation
+reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
+)
+echo %WinVersion% | find "Windows 10" > nul
+if %errorlevel% equ 0 (
+:: Downloading finisher
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows10Finisher.bat %userprofile%/Desktop/Windows10Finisher.bat >NUL 2>&1
+:: Disable FSO Globally and GameDVR
+reg add "HKCU\Software\Microsoft\GameBar" /v "ShowStartupPanel" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\GameBar" /v "GamePanelStartupTipIndex" /t REG_DWORD /d "3" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\GameBar" /v "AllowAutoGameMode" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\GameBar" /v "UseNexusForGameBarEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehaviorMode" /t REG_DWORD /d "2" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehavior" /t REG_DWORD /d "2" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_HonorUserFSEBehaviorMode" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_DXGIHonorFSEWindowsCompatible" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_EFSEFeatureFlags" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_DSEBehavior" /t REG_DWORD /d "2" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR" /v "value" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\GameDVR" /v "AllowGameDVR" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKU\.DEFAULT\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg delete "HKCU\System\GameConfigStore\Children" /f >NUL 2>&1
+reg delete "HKCU\System\GameConfigStore\Parents" /f >NUL 2>&1
+:: Disable power throttling
+reg add "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f >NUL 2>&1
+:: Mouse fix
+reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
+reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
+:: Disabling mitigation
+reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "22222222222222222002000000200000" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "20000020202022220000000000000000" /f >NUL 2>&1
+)
 
 echo  Debloating...
 :: Google Chrome
@@ -1305,7 +1266,6 @@ reg add "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t 
 reg add "HKCU\Software\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :ending
-echo.
 echo  Finished with tweaking
 echo  Report feedbacks, end of script
 pause
@@ -1314,13 +1274,13 @@ pause
 ::reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v MouseDataQueueSize /t REG_DWORD /d 0000000a /f
 ::reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\kbdclass\Parameters" /v KeyboardDataQueueSize /t REG_DWORD /d 0000000a /f
 ::SEENS PROBLEMATIC
-::reg add "HKLM\System\CurrentControlSet\Control\Session Manager" /v "AlpcWakePolicy" /t REG_DWORD /d "1" /f >NUL 2>&1
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaximumSharedReadyQueueSize" /t REG_DWORD /d "1" /f >NUL 2>&1
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DisableAutoBoost" /t REG_DWORD /d "1" /f >NUL 2>&1
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DistributeTimers" /t REG_DWORD /d "1" /f >NUL 2>&1
+::reg add "HKLM\System\CurrentControlSet\Control\Session Manager" /v "AlpcWakePolicy" /t REG_DWORD /d "1" /f
+::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaximumSharedReadyQueueSize" /t REG_DWORD /d "1" /f
+::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DisableAutoBoost" /t REG_DWORD /d "1" /f
+::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DistributeTimers" /t REG_DWORD /d "1" /f
 ::QUESTIONABLE
-::bcdedit /set linearaddress57 OptOut >NUL 2>&1
-::bcdedit /set increaseuserva 268435328 >NUL 2>&1
-::bcdedit /set firstmegabytepolicy UseAll >NUL 2>&1
-::bcdedit /set avoidlowmemory 0x8000000 >NUL 2>&1
-::bcdedit /set nolowmem Yes >NUL 2>&1
+::bcdedit /set linearaddress57 OptOut
+::bcdedit /set increaseuserva 268435328
+::bcdedit /set firstmegabytepolicy UseAll
+::bcdedit /set avoidlowmemory 0x8000000
+::bcdedit /set nolowmem Yes
