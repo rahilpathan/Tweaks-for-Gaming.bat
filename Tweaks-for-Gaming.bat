@@ -13,20 +13,15 @@ ECHO  You can start reading all guides on Revision discord (revi.cc)
 ECHO.
 
 :: Enabling and starting required services...
-SC CONFIG Winmgmt start= demand >NUL 2>&1 
-SC CONFIG TrustedInstaller start= demand >NUL 2>&1
-SC CONFIG AppInfo start= demand >NUL 2>&1
-SC CONFIG DeviceInstall start= demand >NUL 2>&1
-SC CONFIG Dhcp start= demand >NUL 2>&1
-SC CONFIG w32time start=demand >NUL 2>&1
-SC START Winmgmt >NUL 2>&1
-SC START TrustedInstaller >NUL 2>&1
-SC START AppInfo >NUL 2>&1
-SC START DeviceInstall >NUL 2>&1
-SC START Dhcp >NUL 2>&1
-SC START w32time >NUL 2>&1
+POWERSHELL "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
+SC CONFIG Winmgmt start=demand & SC START Winmgmt >NUL 2>&1
+SC CONFIG TrustedInstaller start=demand & SC START TrustedInstaller >NUL 2>&1
+SC CONFIG AppInfo start=demand & SC START AppInfo >NUL 2>&1
+SC CONFIG DeviceInstall start=demand & SC START DeviceInstall >NUL 2>&1
+SC CONFIG Dhcp start=demand & SC START Dhcp >NUL 2>&1
+SC CONFIG w32time start=demand & SC START w32time >NUL 2>&1
 
-:: Resync time based on your timezone
+:: Resync time
 w32tm /config /manualpeerlist:time.windows.com >NUL 2>&1
 w32tm /resync /rediscover >NUL 2>&1
 
@@ -42,46 +37,34 @@ netsh int ipv4 set dns name="%INTERFACE%" static %DNS1% primary >NUL 2>&1
 netsh int ipv4 add dns name="%INTERFACE%" %DNS2% index=2 >NUL 2>&1
 netsh int set interface name="%INTERFACE%" admin="disabled" && netsh int set interface name="%INTERFACE%" admin="enabled" >NUL 2>&1
 
-:: Removing Image File Execution Options...
-POWERSHELL "Remove-Item -Path \"HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue" >NUL 2>&1
+:: Image File Execution Options...
+POWERSHELL "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue" >NUL 2>&1
+REG ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
+REG ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
 
-:: Removing ThreadPrioritys...
-FOR /F "eol=E" %%a in ('REG QUERY "HKLM\SYSTEM\CurrentControlSet\Services" /S /F "ThreadPriority"^| FINDSTR /V "ThreadPriority"') DO (
-REG DELETE "%%a" /F /V "ThreadPriority" >NUL 2>&1
-FOR /F "tokens=*" %%z IN ("%%a") DO (
-SET STR=%%z
-SET STR=!STR:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\=!
-SET STR=!STR:\Parameters=!
-)
-)
-
-ECHO  Execution Policy to Unrestricted...
-POWERSHELL "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
-
-ECHO  Enabling Windows Components...
+:: Enabling Windows Components...
 dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:LegacyComponents /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:DirectPlay /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:NetFx4-AdvSrvs /all /norestart >NUL 2>&1
 dism /online /enable-feature /featurename:NetFx3 /all /norestart >NUL 2>&1
 
-ECHO  Enabling MSI for GPU...
+:: Enabling MSI for GPU...
 for /f %%g in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "VEN_"') do (
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Enum\%%g\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f >NUL 2>&1
 )
 
-ECHO  Disabling Mitigations...
+:: Disabling Mitigations...
 POWERSHELL "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}"  >NUL 2>&1
 
-ECHO  Disabling RAM compression...
+:: Disabling RAM compression...
 POWERSHELL Disable-MMAgent -MemoryCompression -ApplicationPreLaunch -ErrorAction SilentlyContinue >NUL 2>&1
 
-ECHO  Disabling Hibernation...
+:: Disabling Hibernation...
 powercfg -h OFF >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Power" /v "HibernateEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-ECHO  Disabling User Account Control...
-REG ADD "HKLM\System\CurrentControlSet\Services\Appinfo" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+:: Disabling User Account Control...
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableInstallerDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "PromptOnSecureDesktop" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -93,7 +76,7 @@ REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "Ena
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "ConsentPromptBehaviorUser" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "FilterAdministratorToken" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-ECHO  Disabling Windows Update and Defender...
+:: Disabling Windows Update and Defender...
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "BranchReadinessLevel" /t REG_SZ /d "CB" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "DeferFeatureUpdates" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\Software\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState" /v "DeferQualityUpdates" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -130,7 +113,7 @@ REG ADD "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "Disa
 REG ADD "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG DELETE "HKLM\Software\Microsoft\Windows NT\CurrentVersion\SPP\Clients" /f >NUL 2>&1
 
-ECHO  Disabling IoLatencyCap...
+:: Disabling IoLatencyCap...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
 REG ADD "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -148,7 +131,7 @@ SET STR=!STR:\Configurations\msahci_Inst\Services\storahci\Parameters=!
 )
 )
 
-ECHO  Disabling HIPM and DIPM...
+:: Disabling HIPM and DIPM...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /S /F "EnableHIPM"^| FINDSTR /V "EnableHIPM"') DO (
 REG ADD "%%a" /v "EnableHIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "%%a" /v "EnableDIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -158,7 +141,7 @@ SET STR=!STR:HKLM\System\CurrentControlSet\Services\=!
 )
 )
 
-ECHO  Disabling CdpUserSvcs...
+:: Disabling CdpUserSvcs...
 FOR /F "eol=E" %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
 REG ADD "%%a" /F /V "Start" /T REG_DWORD /d 4 >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -167,7 +150,7 @@ SET STR=!STR:HKLM\System\CurrentControlSet\services\=!
 )
 )
 
-ECHO  Disabling QoS and NdisCap...
+:: Disabling QoS and NdisCap...
 FOR /F %%a in ('REG QUERY "HKLM\System\CurrentControlSet\Services\Psched\Parameters\Adapters"') DO ( 
 REG DELETE %%a /F >NUL 2>&1
 FOR /F "tokens=*" %%z IN ("%%a") DO (
@@ -186,7 +169,7 @@ REG ADD !REGPATH! /F /V "FilterList" /T REG_MULTI_SZ /d "!newFilterList!" >NUL 2
 )
 )
 
-ECHO  Disabling USB Hub and StorPort idle...
+:: Disabling USB Hub and StorPort idle...
 FOR /F %%a in ('WMIC PATH Win32_USBHub GET DeviceID^| FINDSTR /L "VID_"') DO (
 REG ADD "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "EnhancedPowerManagementEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "AllowIdleIrpInD3" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -209,156 +192,19 @@ SET STR=!STR:\Device Parameters\StorPort=!
 )
 )
 
+:: Installing AeroLite
 IF EXIST "%WinDir%\Resources\Themes\aero\aerolite.msstyles" (
 powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\aero.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\aerolite.theme', $content)" >NUL 2>&1
-ECHO  Installing Aero Lite Theme
 IF EXIST "%WinDir%\Resources\Themes\light.theme" (
 powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\light.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\lightlite.theme', $content)" >NUL 2>&1 
-ECHO  Installing Light Lite Theme
 )
 )
 
-ECHO  Installing Process Explorer...
+:: Installing Process Explorer...
 IF EXIST "%WINDIR%\procexp64.exe" REG ADD "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 IF EXIST "%WINDIR%\procexp64.exe" REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "EulaAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "Windowplacement" /t REG_BINARY /d "2c0000000200000003000000ffffffffffffffffffffffffffffffff75030000110000009506000069020000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "FindWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000096000000960000000000000000000000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SysinfoWindowplacement" /t REG_BINARY /d "2c00000000000000010000000000000000000000ffffffffffffffff28000000280000002b0300002b020000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "PropWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000028000000280000000000000000000000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllPropWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000028000000280000000000000000000000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "UnicodeFont" /t REG_BINARY /d "080000000000000000000000000000009001000000000000000000004d00530020005300680065006c006c00200044006c00670000000000000000000000000000000000000000000000000000000000000000000000000000000000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "Divider" /t REG_BINARY /d "531f0e151662ea3f" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SavedDivider" /t REG_BINARY /d "531f0e151662ea3f" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ProcessImageColumnWidth" /t REG_DWORD /d "261" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowUnnamedHandles" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowDllView" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HandleSortColumn" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HandleSortDirection" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllSortColumn" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllSortDirection" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ProcessSortColumn" /t REG_DWORD /d "4294967295" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ProcessSortDirection" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightServices" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightOwnProcesses" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightRelocatedDlls" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightJobs" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightNewProc" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightDelProc" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightImmersive" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightProtected" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightPacked" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightNetProcess" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightSuspend" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightDuration" /t REG_DWORD /d "1000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowCpuFractions" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowLowerpane" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowAllUsers" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowProcessTree" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SymbolWarningShown" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HideWhenMinimized" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "AlwaysOntop" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "OneInstance" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "NumColumnSets" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ConfirmKill" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "RefreshRate" /t REG_DWORD /d "1000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "PrcessColumnCount" /t REG_DWORD /d "12" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllColumnCount" /t REG_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HandleColumnCount" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DefaultProcPropPage" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DefaultSysInfoPage" /t REG_DWORD /d "4" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DefaultDllPropPage" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DbgHelpPath" /t REG_SZ /d "C:\Windows\SYSTEM32\dbghelp.dll" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SymbolPath" /t REG_SZ /d "" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorPacked" /t REG_DWORD /d "16711808" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorImmersive" /t REG_DWORD /d "15395328" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorOwn" /t REG_DWORD /d "16765136" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorServices" /t REG_DWORD /d "13684991" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorRelocatedDlls" /t REG_DWORD /d "10551295" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorGraphBk" /t REG_DWORD /d "15790320" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorJobs" /t REG_DWORD /d "27856" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorDelProc" /t REG_DWORD /d "4605695" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorNewProc" /t REG_DWORD /d "4652870" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorNet" /t REG_DWORD /d "10551295" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorProtected" /t REG_DWORD /d "8388863" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowHeatmaps" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorSuspend" /t REG_DWORD /d "8421504" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "StatusBarColumns" /t REG_DWORD /d "13589" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowAllCpus" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowAllGpus" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "Opacity" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "GpuNodeUsageMask" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "GpuNodeUsageMask1" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "VerifySignatures" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "VirusTotalCheck" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "VirusTotalSubmitUnknown" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ToolbarBands" /t REG_BINARY /d "0601000000000000000000004b00000001000000000000004b00000002000000000000004b00000003000000000000004b0000000400000000000000400000000500000000000000500000000600000000000000930400000700000000000000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "UseGoogle" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowNewProcesses" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "TrayCPUHistory" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowIoTray" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowNetTray" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowDiskTray" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowPhysTray" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowCommitTray" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowGpuTray" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "FormatIoBytes" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "StackWindowPlacement" /t REG_BINARY /d "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ETWstandardUserWarning" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "0" /t REG_DWORD /d "26" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "1" /t REG_DWORD /d "42" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "2" /t REG_DWORD /d "1033" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "3" /t REG_DWORD /d "1111" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "4" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "0" /t REG_DWORD /d "110" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "1" /t REG_DWORD /d "180" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "2" /t REG_DWORD /d "140" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "3" /t REG_DWORD /d "300" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "4" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumnMap" /v "0" /t REG_DWORD /d "21" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumnMap" /v "1" /t REG_DWORD /d "22" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumns" /v "0" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumns" /v "1" /t REG_DWORD /d "450" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "0" /t REG_DWORD /d "3" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "1" /t REG_DWORD /d "1055" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "2" /t REG_DWORD /d "1650" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "3" /t REG_DWORD /d "1065" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "4" /t REG_DWORD /d "1200" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "5" /t REG_DWORD /d "1092" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "6" /t REG_DWORD /d "1340" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "7" /t REG_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "8" /t REG_DWORD /d "1333" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "9" /t REG_DWORD /d "1636" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "10" /t REG_DWORD /d "4" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "11" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "12" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "13" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "14" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "15" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "16" /t REG_DWORD /d "1670" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "17" /t REG_DWORD /d "1653" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "18" /t REG_DWORD /d "1653" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "19" /t REG_DWORD /d "1653" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "0" /t REG_DWORD /d "261" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "1" /t REG_DWORD /d "35" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "2" /t REG_DWORD /d "37" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "3" /t REG_DWORD /d "52" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "4" /t REG_DWORD /d "85" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "5" /t REG_DWORD /d "80" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "6" /t REG_DWORD /d "60" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "7" /t REG_DWORD /d "39" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "8" /t REG_DWORD /d "65" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "9" /t REG_DWORD /d "76" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "10" /t REG_DWORD /d "31" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "11" /t REG_DWORD /d "32" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "12" /t REG_DWORD /d "55" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "13" /t REG_DWORD /d "31" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "14" /t REG_DWORD /d "70" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "15" /t REG_DWORD /d "70" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t REG_DWORD /d "44" /f >NUL 2>&1
-REG ADD "HKCU\Software\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 
-ECHO  Network tweaks, takes time...
+:: Network tweaks, takes time...
 NETSH winsock reset >NUL 2>&1
 NETSH interface teredo set state disabled >NUL 2>&1
 NETSH interface 6to4 set state disabled >NUL 2>&1
@@ -435,14 +281,14 @@ REG ADD "%%r" /v "*NumRssQueues" /t REG_SZ /d "1" /f >NUL 2>&1
 REG ADD "%%r" /v "*PMARPOffload" /t REG_SZ /d "0" /f >NUL 2>&1
 REG ADD "%%r" /v "*PMNSOffload" /t REG_SZ /d "0" /f >NUL 2>&1
 REG ADD "%%r" /v "*PriorityVLANTag" /t REG_SZ /d "0" /f >NUL 2>&1
-REG ADD "%%r" /v "*ReceiveBuffers" /t REG_SZ /d "80" /f >NUL 2>&1
+REG ADD "%%r" /v "*ReceiveBuffers" /t REG_SZ /d "112" /f >NUL 2>&1
 REG ADD "%%r" /v "*RSS" /t REG_SZ /d "1" /f >NUL 2>&1
 REG ADD "%%r" /v "*RssBaseProcNumber" /t REG_SZ /d "1" /f >NUL 2>&1
 REG ADD "%%r" /v "*RssMaxProcNumber" /t REG_SZ /d "1" /f >NUL 2>&1
 REG ADD "%%r" /v "*SpeedDuplex" /t REG_SZ /d "0" /f >NUL 2>&1
 REG ADD "%%r" /v "*TCPChecksumOffloadIPv4" /t REG_SZ /d "0" /f >NUL 2>&1
 REG ADD "%%r" /v "*TCPChecksumOffloadIPv6" /t REG_SZ /d "0" /f >NUL 2>&1
-REG ADD "%%r" /v "*TransmitBuffers" /t REG_SZ /d "80" /f >NUL 2>&1
+REG ADD "%%r" /v "*TransmitBuffers" /t REG_SZ /d "112" /f >NUL 2>&1
 REG ADD "%%r" /v "*WakeOnMagicPacket" /t REG_SZ /d "0" /f >NUL 2>&1
 REG ADD "%%r" /v "*WakeOnPattern" /t REG_SZ /d "0" /f >NUL 2>&1
 REG ADD "%%r" /v "AdvancedEEE" /t REG_SZ /d "0" /f >NUL 2>&1
@@ -475,13 +321,12 @@ REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Inte
 
 POWERSHELL Set-NetTCPSetting -SettingName internet -ScalingHeuristics disabled -ErrorAction SilentlyContinue
 POWERSHELL Set-NetTCPSetting -SettingName internet -MinRto 300 -ErrorAction SilentlyContinue
-POWERSHELL Disable-NetAdapterEncapsulatedPacketTaskOffload -Name "*" -ErrorAction SilentlyContinue
-POWERSHELL Disable-NetAdapterIPsecOffload -Name "*" -ErrorAction SilentlyContinue
-POWERSHELL Disable-NetAdapterChecksumOffload -Name "*" -ErrorAction SilentlyContinue
 POWERSHELL Disable-NetAdapterLso -Name "*" -ErrorAction SilentlyContinue
 POWERSHELL Disable-NetAdapterRsc -Name "*" -ErrorAction SilentlyContinue
 POWERSHELL Disable-NetAdapterIPsecOffload -Name "*" -ErrorAction SilentlyContinue
 POWERSHELL Disable-NetAdapterPowerManagement -Name "*" -ErrorAction SilentlyContinue
+POWERSHELL Disable-NetAdapterChecksumOffload -Name "*" -ErrorAction SilentlyContinue
+POWERSHELL Disable-NetAdapterEncapsulatedPacketTaskOffload -Name "*" -ErrorAction SilentlyContinue
 
 :: Adapter bindings
 POWERSHELL Disable-NetAdapterBinding -Name "*" -ComponentID ms_lldp -ErrorAction SilentlyContinue
@@ -512,18 +357,17 @@ POWERSHELL Disable-NetAdapterBinding -Name "*" -ComponentID ms_netbios -ErrorAct
 :: Restarting Adapter
 POWERSHELL Restart-NetAdapter -Name "Ethernet" -ErrorAction SilentlyContinue
 
-ECHO  Disabling Drivers...
+:: Disabling Drivers...
 :: Preventing Errors
-REG ADD "HKLM\System\CurrentControlSet\Services\Dhcp" /v "DependOnService" /t REG_MULTI_SZ /d "NSI\0Afd" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Services\hidserv" /v "DependOnService" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Services\fvevol" /v "ErrorControl" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Services\LanmanServer" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+REG ADD "HKLM\System\CurrentControlSet\Services\Dhcp" /v "DependOnService" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
+REG ADD "HKLM\System\CurrentControlSet\Services\hidserv" /v "DependOnService" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}" /v "UpperFilters" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Class\{4d36e967-e325-11ce-bfc1-08002be10318}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Class\{4d36e967-e325-11ce-bfc1-08002be10318}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Class\{6bdd1fc6-810f-11d0-bec7-08002be2092f}" /v "UpperFilters" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Class\{71a27cdd-812a-11d0-bec7-08002be2092f}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f >NUL 2>&1
-
 :: ACPI Devices driver
 REG ADD "HKLM\System\CurrentControlSet\Services\AcpiDev" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Charge Arbitration Driver
@@ -560,7 +404,6 @@ REG ADD "HKLM\System\CurrentControlSet\Services\Wcnfs" /v "Start" /t REG_DWORD /
 REG ADD "HKLM\System\CurrentControlSet\Services\WindowsTrustedRT" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Microsoft Windows Trusted Runtime Secure Service
 REG ADD "HKLM\System\CurrentControlSet\Services\WindowsTrustedRTProxy" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-
 :: Background Activity Moderator Driver (W10Default=1)
 REG ADD "HKLM\System\CurrentControlSet\Services\bam" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: CNG Hardware Assist algorithm provider (W10Default=4) (W8Default=Empty)
@@ -721,7 +564,6 @@ REG ADD "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d
 REG ADD "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Services\Dhcp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
-ECHO  Importing main tweaks...
 :: Disable Meltdown/Spectre patches
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "EnableCfg" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -742,213 +584,20 @@ REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "EventProcessorEnabled"
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "QosManagesIdleProcessors" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "DisableVsyncLatencyUpdate" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "DisableSensorWatchdog" /t REG_DWORD /d "1" /f >NUL 2>&1
-:: (Questionable)
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "ExitLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "ExitLatencyCheckEnabled" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "Latency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "LatencyToleranceDefault" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "LatencyToleranceFSVP" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "LatencyToleranceIdleResiliency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "LatencyTolerancePerfOverride" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "LatencyToleranceScreenOffIR" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "LatencyToleranceVSyncEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Kernel settings
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DpcWatchdogProfileOffset" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DisableExceptionChainValidation" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "KernelSEHOPEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
-:: (Questionable)
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DpcTimeout" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "IdealDpcRate" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaximumDpcQueueDepth" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MinimumDpcRate" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "ThreadDpcEnable" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "AdjustDpcThreshold" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DpcWatchdogPeriod" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-:: Cursor tweaks (Questionable)
-REG ADD "HKLM\SOFTWARE\Microsoft\Input\Settings\ControllerProcessor\CursorMagnetism" /v "MagnetismUpdateIntervalInMilliseconds" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Input\Settings\ControllerProcessor\CursorSpeed" /v "CursorUpdateInterval" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Display tweaks (Questionable)
-FOR /F "DELIMS=DesktopMonitor, " %%i in ('WMIC PATH Win32_DesktopMonitor GET DeviceID^| FINDSTR /L "DesktopMonitor"') DO (
-SET MonitorAmount=%%i
-)
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v Display%MonitorAmount%_PipeOptimizationEnable /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Force contiguous memory allocation in the DirectX Graphics Kernel
+:: GPU settings
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "DpiMapIommuContiguous" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Force contiguous memory allocation in the NVIDIA driver
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "PreferSystemMemoryContiguous" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Gpu tweaks (Questionable) Melody Basic Tweaks
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultD3TransitionLatencyActivelyUsed" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultD3TransitionLatencyIdleLongTime" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultD3TransitionLatencyIdleMonitorOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultD3TransitionLatencyIdleNoContext" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultD3TransitionLatencyIdleShortTime" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultD3TransitionLatencyIdleVeryLongTime" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceIdle0" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceIdle0MonitorOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceIdle1" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceIdle1MonitorOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceMemory" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceNoContext" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceNoContextMonitorOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceOther" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultLatencyToleranceTimerPeriod" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultMemoryRefreshLatencyToleranceActivelyUsed" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultMemoryRefreshLatencyToleranceMonitorOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DefaultMemoryRefreshLatencyToleranceNoContext" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "Latency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "MaxIAverageGraphicsLatencyInOneBucket" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "MiracastPerfTrackGraphicsLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "MonitorLatencyTolerance" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "MonitorRefreshLatencyTolerance" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "TransitionLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "D3PCLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "F1TransitionLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "LOWLATENCY" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "Node3DLowLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "PciLatencyTimerControl" /t REG_DWORD /d "20" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RMDeepL1EntryLatencyUsec" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RmGspcMaxFtuS" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RmGspcMinFtuS" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RmGspcPerioduS" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RMLpwrEiIdleThresholdUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RMLpwrGrIdleThresholdUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RMLpwrGrRgIdleThresholdUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "RMLpwrMsIdleThresholdUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "VRDirectFlipDPCDelayUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "VRDirectFlipTimingMarginUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "VRDirectJITFlipMsHybridFlipDelayUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "vrrCursorMarginUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "vrrDeflickerMarginUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "vrrDeflickerMaxUs" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "TransitionLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-:: (Questionable)
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "D3PCLatency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "DisableWriteCombining" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "EnableRuntimePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "FlTransitionLatency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwSchedMode" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "LOWLATENCY" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "Node3DLowLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "PciLatencyTimerControl" /t REG_DWORD /d "32" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "PowerSavingTweaks" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "PrimaryPushBufferSize" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "RMDeepLlEntryLatencyUsec" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "RMDisablePostL2Compression" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "RmDisableRegistryCaching" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "RmGpsPsEnablePerCpuCoreDpc" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "TdrLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "UseGpuTimer" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "D3PCLatency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "DisableWriteCombining" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "EnableRuntimePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "FlTransitionLatency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "LOWLATENCY" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "Node3DLowLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "PciLatencyTimerControl" /t REG_DWORD /d "32" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "PowerSavingTweaks" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "PrimaryPushBufferSize" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "RMDeepLlEntryLatencyUsec" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "RMDisablePostL2Compression" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "RmDisableRegistryCaching" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "RmGpsPsEnablePerCpuCoreDpc" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power" /v "UseGpuTimer" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "AdaptiveVsyncEnable" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "AllowDeepCStates" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "BuffersInFlight" /t REG_DWORD /d "128" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "D3PCLatency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "DisableGDIAcceleration" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "DisablePFonDP" /t REG_DWORD /d "1" /f >NUL 2>&1
 REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "DisableWriteCombining" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "Disable_OverlayDSQualityEnhancement" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "EnableRuntimePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "FlTransitionLatency" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "LOWLATENCY" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "Node3DLowLatency" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "PciLatencyTimerControl" /t REG_DWORD /d "32" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "PowerSavingTweaks" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "PrimaryPushBufferSize" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "RMDeepLlEntryLatencyUsec" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "RMDisablePostL2Compression" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "RmDisableRegistryCaching" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "RmFbsrPagedDMA" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "RmGpsPsEnablePerCpuCoreDpc" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "UseGpuTimer" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Avalon tweaks (Questionable)
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "ClearTypeLevel" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "DisableHWAcceleration" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "EnhancedContrastLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "GammaLevel" /t REG_DWORD /d "1600" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "GrayscaleEnhancedContrastLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "MaxMultisampleSize" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "PixelStructure" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "TextContrastLevel" /t REG_DWORD /d "6" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Avalon.Graphics" /v "UseReferenceRasterizer" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "ClearTypeLevel" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "DisableHWAcceleration" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "EnhancedContrastLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "GammaLevel" /t REG_DWORD /d "1600" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "GrayscaleEnhancedContrastLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "MaxMultisampleSize" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "PixelStructure" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "TextContrastLevel" /t REG_DWORD /d "6" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Avalon.Graphics" /v "UseReferenceRasterizer" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "ClearTypeLevel" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "DisableHWAcceleration" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "EnhancedContrastLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "GammaLevel" /t REG_DWORD /d "1600" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "GrayscaleEnhancedContrastLevel" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "MaxMultisampleSize" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "PixelStructure" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "TextContrastLevel" /t REG_DWORD /d "6" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Avalon.Graphics" /v "UseReferenceRasterizer" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Avalon.Graphics" /v "DisableHWAcceleration" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Avalon.Graphics" /v "MaxMultisampleSize" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Avalon.Graphics" /v "UseReferenceRasterizer" /t REG_DWORD /d "0" /f >NUL 2>&1
-
-:: Direct3d tweaks (Questionable)
-REG ADD "HKCU\SOFTWARE\Microsoft\Direct3D" /v "DisableVidMemVBs" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Direct3D" /v "FlipNoVsync" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Direct3D" /v "MMX Fast Path" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Direct3D\Drivers" /v "SoftwareOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\DirectDraw" /v "EmulationOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Direct3D" /v "DisableVidMemVBs" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Direct3D" /v "FlipNoVsync" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Direct3D" /v "MMX Fast Path" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\Direct3D\Drivers" /v "SoftwareOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\DirectDraw" /v "EmulationOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Direct3D" /v "DisableVidMemVBs" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Direct3D" /v "FlipNoVsync" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Direct3D" /v "MMX Fast Path" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\Direct3D\Drivers" /v "SoftwareOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\WOW6432Node\Microsoft\DirectDraw" /v "EmulationOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D" /v "DisableVidMemVBs" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D" /v "FlipNoVsync" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D" /v "MMX Fast Path" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\Direct3D\Drivers" /v "SoftwareOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKU\.DEFAULT\SOFTWARE\Microsoft\DirectDraw" /v "EmulationOnly" /t REG_DWORD /d "0" /f >NUL 2>&1
-
-:: Unlock Silk Smoothness
-REG ADD "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Removing Kernel Blacklist
-REG DELETE "HKLM\System\CurrentControlSet\Control\GraphicsDrivers\BlockList\Kernel" /va /reg:64 /f >NUL 2>&1
-
-:: Enabling AL HRTF
-ECHO hrtf ^= true > "%appdata%\alsoft.ini"
-ECHO hrtf ^= true > "C:\ProgramData\alsoft.ini"
 
 :: Disable additional NTFS/ReFS mitigations
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager" /v "ProtectionMode" /t REG_DWORD /d "0" /f >NUL 2>&1
-
-:: Drivers and the kernel can be paged to disk as needed
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "DisablePagingExecutive" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Using big system memory caching to improve microstuttering
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "LargeSystemCache" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -966,253 +615,71 @@ WMIC computersystem where name="%computername%" set AutomaticManagedPagefile=Fal
 WMIC pagefileset where name="C:\\pagefile.sys" set InitialSize=32768,MaximumSize=32768 >NUL 2>&1
 :no16gb
 
-:: Multimedia Profile
-REG ADD "HKLM\System\CurrentControlSet\Services\MMCSS" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d "10" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "10" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Affinity" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Background Only" /t REG_SZ /d "False" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Clock Rate" /t REG_DWORD /d "10000" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "GPU Priority" /t REG_DWORD /d "8" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d "6" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Scheduling Category" /t REG_SZ /d "High" /f >NUL 2>&1
-REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "SFIO Priority" /t REG_SZ /d "High" /f >NUL 2>&1
-
 :: Process Scheduling
-REG ADD "HKLM\System\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "38" /f >NUL 2>&1
+REG ADD "HKLM\System\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "37" /f >NUL 2>&1
 
-:: Minimizing the number of times the CPU is forced to perform the relatively power-costly operation of entering and exiting idle states
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Power" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Executive" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Power\ModernSleep" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Power" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control" /v "CoalescingTimerInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
-
-:: Revision Powerplan Disable Idle
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b" /v "Description" /t REG_EXPAND_SZ /d "(v2.8) Promotes low latency and high performance while eliminating sleeping features." /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b" /v "FriendlyName" /t REG_EXPAND_SZ /d "Revision™ Extreme Performance" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\0b2d69d7-a2a1-449c-9680-f91c70521c60" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\0b2d69d7-a2a1-449c-9680-f91c70521c60" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\6738e2c4-e8a5-4a42-b16a-e040e769756e" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\6738e2c4-e8a5-4a42-b16a-e040e769756e" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\80e3c60e-bb94-4ad8-bbe0-0d3195efc663" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\d3d55efd-c1ff-424e-9dc3-441be7833010" /v "DCSettingIndex" /t REG_DWORD /d "2000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\d639518a-e56d-4345-8af2-b9f32fb26109" /v "DCSettingIndex" /t REG_DWORD /d "200" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\dab60367-53fe-4fbc-825e-521d069d2456" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\dbc9e238-6de9-49e3-92cd-8c2b4946b472" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0012ee47-9041-4b5d-9b77-535fba8b1442\fc95af4d-40e7-4b6d-835a-56d131dbc80e" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\02f815b5-a5cf-4c84-bf20-649d1f75d3d8\4c793e7d-a264-42e1-87d3-7a0d2f523ccd" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\0d7dbae2-4294-402a-ba8e-26777e8488cd\309dce9b-bef4-4119-9921-a851fb12f0f4" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\19cbb8fa-5279-450e-9fac-8a3d5fedd0c1\12bbebe6-58d6-4636-95bb-3217ef867c1a" /v "DCSettingIndex" /t REG_BINARY /d "00000000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\1a34bdc3-7e6b-442e-a9d0-64b6ef378e84" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\25dfa149-5dd1-4736-b5ab-e8a37b5b8187" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\29f6c1db-86da-48c5-9fdb-f2b67b1f44da" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\9d7815a6-7ee4-497e-8888-515a05f02364" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\9d7815a6-7ee4-497e-8888-515a05f02364" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\bd3b718a-0680-4d9d-8ab2-e1d2b4ac806d" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\238c9fa8-0aad-41ed-83f4-97be242c8f20\d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\245d8541-3943-4422-b025-13a784f679b7" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\245d8541-3943-4422-b025-13a784f679b7" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\0853a681-27c8-4100-a2fd-82013e970683" /v "DCSettingIndex" /t REG_DWORD /d "100000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\0853a681-27c8-4100-a2fd-82013e970683" /v "ACSettingIndex" /t REG_DWORD /d "50" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\48e6b7a6-50f5-4782-a5d4-53bb8f07e226" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\48e6b7a6-50f5-4782-a5d4-53bb8f07e226" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\498c044a-201b-4631-a522-5c744ed4e678" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\d4e98f31-5ffe-4ce1-be31-1b38b384c009" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2a737441-1930-4402-8d77-b2bebba308a3\d4e98f31-5ffe-4ce1-be31-1b38b384c009" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\3166bc41-7e98-4e03-b34e-ec0f5f2b218e" /v "ACSettingIndex" /t REG_DWORD /d "4294967295" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\3166bc41-7e98-4e03-b34e-ec0f5f2b218e" /v "DCSettingIndex" /t REG_DWORD /d "4294967295" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\c36f0eb4-2988-4a70-8eee-0884fc2c2433" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\d502f7ee-1dc7-4efd-a55d-f04b6f5c0545" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\2e601130-5351-4d9d-8e04-252966bad054\d502f7ee-1dc7-4efd-a55d-f04b6f5c0545" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\44f3beca-a7c0-460e-9df2-bb8b99e0cba6\3619c3f2-afb2-4afc-b0e9-e7fef372de36" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\73cde64d-d720-4bb2-a860-c755afe77ef2" /v "DCSettingIndex" /t REG_DWORD /d "10000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\73cde64d-d720-4bb2-a860-c755afe77ef2" /v "ACSettingIndex" /t REG_DWORD /d "10000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\d6ba4903-386f-4c2c-8adb-5c21b3328d25" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\d6ba4903-386f-4c2c-8adb-5c21b3328d25" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4f971e89-eebd-4455-a8de-9e59040e7347\5ca83367-6e45-459f-a27b-476b1d01c936" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\4faab71a-92e5-4726-b531-224559672d19" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\501a4d13-42af-4429-9fd1-a8218c268e20\ee12f906-d277-404b-b6da-e5fa1a576df5" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35d" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35d" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35e" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\06cadf0e-64ed-448a-8927-ce7bf90eb35e" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318584" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318584" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a6" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a6" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a7" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\12a0ab44-fe28-4fa9-b3bd-4b64f44960a7" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\2ddd5a84-5a71-437e-912a-db0b8c788732" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\2ddd5a84-5a71-437e-912a-db0b8c788732" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\36687f9e-e3a5-4dbf-b1dc-15eb381c6863" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\36687f9e-e3a5-4dbf-b1dc-15eb381c6864" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\3b04d4fd-1cc7-4f23-ab1c-d1337819c4bb" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\3b04d4fd-1cc7-4f23-ab1c-d1337819c4bb" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac6" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac6" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac7" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\40fbefc7-2e9d-4d25-a185-0cfd8574bac7" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2b" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2b" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2c" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\447235c7-6a8d-4cc0-8e24-9eaf70b96e2c" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\45bcc044-d885-43e2-8605-ee0ec6e96b59" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\45bcc044-d885-43e2-8605-ee0ec6e96b59" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\465e1f50-b610-473a-ab58-00d1077dc418" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\465e1f50-b610-473a-ab58-00d1077dc419" /v "ACSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4b92d758-5a24-4851-a470-815d78aee119" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4b92d758-5a24-4851-a470-815d78aee119" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4bdaf4e9-d103-46d7-a5f0-6280121616ef" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4bdaf4e9-d103-46d7-a5f0-6280121616ef" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4d2b0152-7d5c-498b-88e2-34345392a2c5" /v "DCSettingIndex" /t REG_DWORD /d "5000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\4d2b0152-7d5c-498b-88e2-34345392a2c5" /v "ACSettingIndex" /t REG_DWORD /d "5000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\5d76a2ca-e8c0-402f-a133-2158492d58ad" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd88" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd88" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd89" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\616cdaa5-695e-4545-97ad-97dc2d1bdd89" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300971" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300971" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300972" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\619b7505-003b-4e82-b7a6-4dd29c300972" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\68dd2f27-a4ce-4e11-8487-3794e4135dfa" /v "ACSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\71021b41-c749-4d21-be74-a00f335d582b" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7b224883-b3cc-4d79-819f-8374152cbe7c" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7b224883-b3cc-4d79-819f-8374152cbe7c" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f5f" /v "ACSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f5f" /v "DCSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f60" /v "ACSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7d24baa7-0b84-480f-840c-1b0743c00f60" /v "DCSettingIndex" /t REG_DWORD /d "128" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7f2492b6-60b1-45e5-ae55-773f8cd5caec" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\7f2492b6-60b1-45e5-ae55-773f8cd5caec" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\893dee8e-2bef-41e0-89c6-b55d0929964c" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\893dee8e-2bef-41e0-89c6-b55d0929964c" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\893dee8e-2bef-41e0-89c6-b55d0929964d" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\8baa4a8a-14c6-4451-8e8b-14bdbd197537" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\8baa4a8a-14c6-4451-8e8b-14bdbd197537" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\93b8b6dc-0698-4d1c-9ee4-0644e900c85d" /v "DCSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\93b8b6dc-0698-4d1c-9ee4-0644e900c85d" /v "ACSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\943c8cb6-6f93-4227-ad87-e9a3feec08d1" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\943c8cb6-6f93-4227-ad87-e9a3feec08d1" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\94d3a615-a899-4ac5-ae2b-e4d8f634367f" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5aa" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5aa" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5ab" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\984cf492-3bed-4488-a8f9-4286c97bf5ab" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bae08b81-2d5e-4688-ad6a-13243356654b" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bae08b81-2d5e-4688-ad6a-13243356654b" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bc5038f7-23e0-4960-96da-33abaf5935ec" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\bc5038f7-23e0-4960-96da-33abaf5935ec" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\be337238-0d82-4146-a960-4f3749d470c7" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c4581c31-89ab-4597-8e2b-9c9cab440e6b" /v "ACSettingIndex" /t REG_DWORD /d "200000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c4581c31-89ab-4597-8e2b-9c9cab440e6b" /v "DCSettingIndex" /t REG_DWORD /d "200000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c7be0679-2817-4d69-9d02-519a537ed0c6" /v "ACSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\c7be0679-2817-4d69-9d02-519a537ed0c6" /v "DCSettingIndex" /t REG_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\cfeda3d0-7697-4566-a922-a9086cd49dfa" /v "DCSettingIndex" /t REG_DWORD /d "45000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\cfeda3d0-7697-4566-a922-a9086cd49dfa" /v "ACSettingIndex" /t REG_DWORD /d "45000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c8" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c8" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c9" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\d8edeb9b-95cf-4f95-a73c-b061973693c9" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\df142941-20f3-4edf-9a4a-9c83d3d717d1" /v "ACSettingIndex" /t REG_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\dfd10d17-d5eb-45dd-877a-9a34ddd15c82" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\dfd10d17-d5eb-45dd-877a-9a34ddd15c82" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\e0007330-f589-42ed-a401-5ddb10e785d3" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\e0007330-f589-42ed-a401-5ddb10e785d3" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\54533251-82be-4824-96c1-47b60b740d00\f735a673-2066-4f80-a0c5-ddee0cf1bf5d" /v "ACSettingIndex" /t REG_DWORD /d "10" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\68afb2d9-ee95-47a8-8f50-4115088073b1" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\17aaa29b-8b43-4b94-aafe-35f64daaf1ee" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\17aaa29b-8b43-4b94-aafe-35f64daaf1ee" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\3c0bc021-c8a8-4e07-a973-6b14cbcb2b7e" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\3c0bc021-c8a8-4e07-a973-6b14cbcb2b7e" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\684c3e69-a4f7-4014-8754-d45179a56167" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\aded5e82-b909-4619-9949-f5d71dac0bcb" /v "ACSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\7516b95f-f776-4464-8c53-06167f40cc99\aded5e82-b909-4619-9949-f5d71dac0bcb" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\60c07fe1-0556-45cf-9903-d56e32210242" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\60c07fe1-0556-45cf-9903-d56e32210242" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\82011705-fb95-4d46-8d35-4042b1d20def" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\82011705-fb95-4d46-8d35-4042b1d20def" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\9fe527be-1b70-48da-930d-7bcf17b44990" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\9fe527be-1b70-48da-930d-7bcf17b44990" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\c763ee92-71e8-4127-84eb-f6ed043a3e3d" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\8619b916-e004-4dd8-9b66-dae86f806698\c763ee92-71e8-4127-84eb-f6ed043a3e3d" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\10778347-1370-4ee0-8bbd-33bdacaade49" /v "ACSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\10778347-1370-4ee0-8bbd-33bdacaade49" /v "DCSettingIndex" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\34c7b99f-9a6d-4b3c-8dc7-b6693b78cef4" /v "ACSettingIndex" /t REG_BINARY /d "00000000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\9596fb26-9850-41fd-ac3e-f7c3c00afd4b\34c7b99f-9a6d-4b3c-8dc7-b6693b78cef4" /v "DCSettingIndex" /t REG_BINARY /d "00000000" /f >NUL 2>&1
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\f3193aa7-d9d0-421a-90dc-845e70eff72b\de830923-a562-41af-a086-e3a2c6bad2da\13d09884-f74e-474a-a852-b6bde8ad03a8" /v "DCSettingIndex" /t REG_DWORD /d "100" /f >NUL 2>&1
-powercfg -setactive f3193aa7-d9d0-421a-90dc-845e70eff72b >NUL 2>&1
-powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
-powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
+:: BCD Params...
+:: Constantly pool interrupts, dynamic tick was implemented as a power saving feature for laptops
+BCDEDIT /set disabledynamictick yes >NUL 2>&1
+:: Disable synthetic tick
+BCDEDIT /set useplatformtick Yes >NUL 2>&1
+:: Sync Policy
+BCDEDIT /set tscsyncpolicy Enhanced >NUL 2>&1
+:: Disable Data Execution Prevention Security Feature
+BCDEDIT /set nx AlwaysOff >NUL 2>&1
+:: Disable Emergency Management Services
+BCDEDIT /set ems No >NUL 2>&1
+BCDEDIT /set bootems No >NUL 2>&1
+:: Disable code integrity services
+BCDEDIT /set integrityservices disable >NUL 2>&1
+:: Disable TPM Boot Entropy policy Security Feature
+BCDEDIT /set tpmbootentropy ForceDisable >NUL 2>&1
+:: Change bootmenupolicy to be able to F8
+BCDEDIT /set bootmenupolicy Legacy >NUL 2>&1
+:: Disable kernel debugger
+BCDEDIT /set debug No >NUL 2>&1
+:: Disable Virtual Secure Mode from Hyper-V
+BCDEDIT /set hypervisorlaunchtype Off >NUL 2>&1
+:: Disable the Controls the loading of Early Launch Antimalware (ELAM) drivers
+BCDEDIT /set disableelamdrivers Yes >NUL 2>&1
+:: Disable some of the kernel memory mitigations, gamers dont use SGX under any possible circumstance
+BCDEDIT /set isolatedcontext No >NUL 2>&1
+BCDEDIT /set allowedinmemorysettings 0x0 >NUL 2>&1
+:: Disable DMA memory protection and cores isolation
+BCDEDIT /set vm No >NUL 2>&1
+BCDEDIT /set vsmlaunchtype Off >NUL 2>&1
+:: Enable X2Apic and enable Memory Mapping for PCI-E devices
+:: (for best results, further more enable MSI mode for all devices using MSI utility or manually)
+BCDEDIT /set x2apicpolicy Enable >NUL 2>&1
+BCDEDIT /set configaccesspolicy Default >NUL 2>&1
+BCDEDIT /set MSI Default >NUL 2>&1
+BCDEDIT /set usephysicaldestination No >NUL 2>&1
+BCDEDIT /set usefirmwarepcisettings No >NUL 2>&1
 
 :: Settings based on current Windows Version
 for /f "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v "ProductName"') do set "WinVersion=%%A %%B"
 ECHO %WinVersion% | find "Windows 7" > nul
 if %errorlevel% equ 0 (
-:: Timestamp to 0 cause no problems at all in w7
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Reliability" /v "TimeStampInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
+:: Disabling DWM (Windows 7)
+REG ADD "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 :: Mouse fix (Windows 7)
 REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000703d0a0000000000e07a14000000000050b81e0000000000c0f5280000000000" /f >NUL 2>&1
 REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
+:: Safety / Bricks Windows 7
+REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
 )
 ECHO %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
-:: Timestamp to 0 cause no problems at all in w8
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Reliability" /v "TimeStampInterval" /t REG_DWORD /d "0" /f >NUL 2>&1
 :: Mouse fix (Windows 8.1)
 REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
 REG ADD add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
 :: Disabling mitigation (Windows 8.1)
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "00000000000000000000000000000000" /f >NUL 2>&1
-:: Manages power policy and power policy notification delivery and IDE Channel / Bricks Windows 7
-REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Disabling TL Corner right side
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\EdgeUI" /v "DisableTLcorner" /t REG_DWORD /d "1" /f >NUL 2>&1
 )
 ECHO %WinVersion% | find "Windows 10" > nul
 if %errorlevel% equ 0 (
-:: Timestamp to 1 cause it will force timer to 0.48 while hpet off bios in some w10 versions
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Reliability" /v "TimeStampInterval" /t REG_DWORD /d "1" /f >NUL 2>&1
-:: Mouse fix (Windows 10)
-REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
-REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
-:: Disabling mitigation (Windows 10)
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "22222222222222222002000000200000" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "20000020202022220000000000000000" /f >NUL 2>&1
-:: Manages power policy and power policy notification delivery and IDE Channel / Bricks Windows 7
-REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-)
-
-ECHO  Importing minimal tweaks...
-:: Disable SmartScreen
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v SmartScreenEnabled /t REG_SZ /d "Off" /f > NUL 2>&1
-
-:: Disable Content Evaluation
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v ContentEvaluation /t REG_DWORD /d "0" /f > NUL 2>&1
-
-:: Disable Timeline
-REG ADD "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableActivityFeed" /t REG_DWORD /d "0" /f > NUL 2>&1
-
-:: Disabling DWM (Windows 7)
-REG ADD "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
-
-:: Seens like this reg improves dwm performance
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "AltTabSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
-
-:: Disable power throttling (Windows 10)
-REG ADD "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f >NUL 2>&1
-
 :: Disable FSO Globally and GameDVR (Windows 10)
 REG ADD "HKCU\Software\Microsoft\GameBar" /v "ShowStartupPanel" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKCU\Software\Microsoft\GameBar" /v "GamePanelStartupTipIndex" /t REG_DWORD /d "3" /f >NUL 2>&1
@@ -1232,6 +699,25 @@ REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureE
 REG ADD "HKU\.DEFAULT\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG DELETE "HKCU\System\GameConfigStore\Children" /f >NUL 2>&1
 REG DELETE "HKCU\System\GameConfigStore\Parents" /f >NUL 2>&1
+:: Disable power throttling (Windows 10)
+REG ADD "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f >NUL 2>&1
+:: Mouse fix (Windows 10)
+REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
+REG ADD "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
+:: Disabling mitigation (Windows 10)
+REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "22222222222222222002000000200000" /f >NUL 2>&1
+REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "20000020202022220000000000000000" /f >NUL 2>&1
+)
+
+:: Multimedia Profile
+REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "10" /f >NUL 2>&1
+REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d "6" /f >NUL 2>&1
+
+:: Unlock Silk Smoothness
+REG ADD "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f >NUL 2>&1
+
+:: Seens like this reg improves dwm performance
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "AltTabSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Hide Language Bar
 REG ADD "HKCU\Software\Microsoft\CTF\LangBar" /v "ShowStatus" /t REG_DWORD /d "3" /f >NUL 2>&1
@@ -1282,11 +768,6 @@ REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "link" /t R
 REG ADD "HKCU\Control Panel\Accessibility\MouseKeys" /v "Flags" /t REG_SZ /d "186" /f >NUL 2>&1
 REG ADD "HKCU\Control Panel\Accessibility\MouseKeys" /v "MaximumSpeed" /t REG_SZ /d "40" /f >NUL 2>&1
 REG ADD "HKCU\Control Panel\Accessibility\MouseKeys" /v "TimeToMaximumSpeed" /t REG_SZ /d "3000" /f >NUL 2>&1
-
-:: Disable Data Execution Prevention
-REG ADD "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v "NoDataExecutionPrevention" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\Software\Policies\Microsoft\Windows\System" /v "DisableHHDEP" /t REG_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableSmartScreen" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Disable automatic maintenance
 REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" /v "MaintenanceDisabled" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -1452,46 +933,46 @@ REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\SharedAccess\Parameter
 REG DELETE "HKLM\System\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" /f >NUL 2>&1
 
 :: Disable SettingSync
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync" /v "SyncPolicy" /t Reg_DWORD /d "5" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Accessibility" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\AppSync" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\BrowserSettings" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Credentials" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\DesktopTheme" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Language" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\PackageState" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Personalization" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\StartLayout" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Windows" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableAppSyncSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableAppSyncSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableApplicationSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableApplicationSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableCredentialsSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableCredentialsSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableDesktopThemeSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableDesktopThemeSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSync" /t Reg_DWORD /d "2" /f  >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableStartLayoutSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableStartLayoutSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableSyncOnPaidNetwork" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableWebBrowserSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableWebBrowserSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableWindowsSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableWindowsSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableAppSyncSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableAppSyncSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableApplicationSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableApplicationSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableCredentialsSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableCredentialsSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableDesktopThemeSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableDesktopThemeSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSync" /t Reg_DWORD /d "2" /f  >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisablePersonalizationSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableStartLayoutSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableStartLayoutSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableSyncOnPaidNetwork" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableWebBrowserSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableWebBrowserSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableWindowsSettingSync" /t Reg_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\SettingSync" /v "DisableWindowsSettingSyncUserOverride" /t Reg_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Accessibility" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\AppSync" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\BrowserSettings" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Credentials" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\DesktopTheme" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Language" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\PackageState" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Personalization" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\StartLayout" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\Groups\Windows" /v "Enabled" /t Reg_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync" /v "SyncPolicy" /t Reg_DWORD /d "5" /f >NUL 2>&1
 
 :: Disable Windows Search
 REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "BingSearchEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "CortanaEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "SearchboxTaskbarMode" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v "AllowCloudSearch" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCloudSearch" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKLM\Software\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Remove Metadata Tracking
 REG DELETE "HKLM\Software\Microsoft\Windows\CurrentVersion\Device Metadata" /f > NUL 2>&1
@@ -1499,53 +980,7 @@ REG DELETE "HKLM\Software\Microsoft\Windows\CurrentVersion\Device Metadata" /f >
 :: Remove Storage Sense
 REG DELETE "HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense" /f > NUL 2>&1
 
-ECHO  BCD Params...
-:: Disable synthetic timer
-BCDEDIT /deletevalue useplatformclock >NUL 2>&1
-:: Constantly pool interrupts, dynamic tick was implemented as a power saving feature for laptops
-BCDEDIT /set disabledynamictick yes >NUL 2>&1
-:: Disable synthetic tick
-BCDEDIT /set useplatformtick Yes >NUL 2>&1
-:: Sync Policy
-BCDEDIT /set tscsyncpolicy Enhanced >NUL 2>&1
-:: Disable Data Execution Prevention Security Feature
-BCDEDIT /set nx AlwaysOff >NUL 2>&1
-:: Disable Emergency Management Services
-BCDEDIT /set ems No >NUL 2>&1
-BCDEDIT /set bootems No >NUL 2>&1
-:: Disable code integrity services
-BCDEDIT /set integrityservices disable >NUL 2>&1
-:: Disable TPM Boot Entropy policy Security Feature
-BCDEDIT /set tpmbootentropy ForceDisable >NUL 2>&1
-:: Change bootmenupolicy to be able to F8
-BCDEDIT /set bootmenupolicy Legacy >NUL 2>&1
-:: Disable kernel debugger
-BCDEDIT /set debug No >NUL 2>&1
-:: Disable Virtual Secure Mode from Hyper-V
-BCDEDIT /set hypervisorlaunchtype Off >NUL 2>&1
-:: Disable the Controls the loading of Early Launch Antimalware (ELAM) drivers
-BCDEDIT /set disableelamdrivers Yes >NUL 2>&1
-:: Disable some of the kernel memory mitigations, gamers dont use SGX under any possible circumstance
-BCDEDIT /set isolatedcontext No >NUL 2>&1
-BCDEDIT /set allowedinmemorysettings 0x0 >NUL 2>&1
-:: Disable DMA memory protection and cores isolation
-BCDEDIT /set vm No >NUL 2>&1
-BCDEDIT /set vsmlaunchtype Off >NUL 2>&1
-:: Enable X2Apic and enable Memory Mapping for PCI-E devices
-:: (for best results, further more enable MSI mode for all devices using MSI utility or manually)
-BCDEDIT /set x2apicpolicy Enable >NUL 2>&1
-BCDEDIT /set configaccesspolicy Default >NUL 2>&1
-BCDEDIT /set MSI Default >NUL 2>&1
-BCDEDIT /set usephysicaldestination No >NUL 2>&1
-BCDEDIT /set usefirmwarepcisettings No >NUL 2>&1
-:: Questionable
-BCDEDIT /set linearaddress57 OptOut >NUL 2>&1
-BCDEDIT /set increaseuserva 268435328 >NUL 2>&1
-BCDEDIT /set firstmegabytepolicy UseAll >NUL 2>&1
-BCDEDIT /set avoidlowmemory 0x8000000 >NUL 2>&1
-BCDEDIT /set nolowmem Yes >NUL 2>&1
-
-ECHO  Debloating softwares...
+ECHO  Debloating...
 :: Google Chrome
 taskkill /f /im chrome.exe >NUL 2>&1
 schtasks.exe /change /TN "\GoogleUpdateTaskMachineCore" /Disable >NUL 2>&1
@@ -1564,7 +999,7 @@ REG ADD "HKCU\Software\7-Zip\Options" /v "MenuIcons" /t REG_DWORD /d "1" /f >NUL
 REG ADD "HKCU\Software\7-Zip\Options" /v "ContextMenu" /t REG_DWORD /d "4132" /f >NUL 2>&1
 REG ADD "HKCU\Software\7-Zip\FM\Columns" /v "RootFolder" /t REG_BINARY /d "0100000000000000010000000400000001000000A0000000" /f >NUL 2>&1
 del "C:\Users\Public\Desktop\7-Zip File Manager.lnk" >NUL 2>&1
-:: Discord (Thanks Chromestastic and Velo)
+:: Discord
 taskkill /f /im discord.exe >NUL 2>&1
 DEL "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_modules\397863cd8f\2\discord_game_sdk_x64.dll" /F /Q >NUL 2>&1
 DEL "%HOMEPATH%\appdata\Roaming\discord\0.0.307\modules\discord_modules\397863cd8f\2\discord_game_sdk_x64.dll" /F /Q >NUL 2>&1
@@ -1600,7 +1035,6 @@ rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_Spellcheck"
 rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.307\modules\discord_Spellcheck" >NUL 2>&1
 rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.306\modules\discord_Spellcheck" >NUL 2>&1
 attrib +r "%localappdata%\Discord\Update.exe" >NUL 2>&1
-REG DELETE "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Discord" /f >NUL 2>&1
 :: Spotify
 taskkill /f /im spotify.exe >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\SpotifyMigrator.exe" >NUL 2>&1
@@ -1691,7 +1125,143 @@ del /f/s/q "%appdata%\Spotify\locales\vi.pak" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-CN.pak" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-Hant.mo" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-TW.pak" >NUL 2>&1
-REG DELETE "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Spotify" /f >NUL 2>&1
+:: Process Explorer
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "EulaAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "Windowplacement" /t REG_BINARY /d "2c0000000200000003000000ffffffffffffffffffffffffffffffff75030000110000009506000069020000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "FindWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000096000000960000000000000000000000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SysinfoWindowplacement" /t REG_BINARY /d "2c00000000000000010000000000000000000000ffffffffffffffff28000000280000002b0300002b020000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "PropWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000028000000280000000000000000000000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllPropWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000028000000280000000000000000000000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "UnicodeFont" /t REG_BINARY /d "080000000000000000000000000000009001000000000000000000004d00530020005300680065006c006c00200044006c00670000000000000000000000000000000000000000000000000000000000000000000000000000000000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "Divider" /t REG_BINARY /d "531f0e151662ea3f" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SavedDivider" /t REG_BINARY /d "531f0e151662ea3f" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ProcessImageColumnWidth" /t REG_DWORD /d "261" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowUnnamedHandles" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowDllView" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HandleSortColumn" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HandleSortDirection" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllSortColumn" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllSortDirection" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ProcessSortColumn" /t REG_DWORD /d "4294967295" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ProcessSortDirection" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightServices" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightOwnProcesses" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightRelocatedDlls" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightJobs" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightNewProc" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightDelProc" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightImmersive" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightProtected" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightPacked" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightNetProcess" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightSuspend" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HighlightDuration" /t REG_DWORD /d "1000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowCpuFractions" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowLowerpane" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowAllUsers" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowProcessTree" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SymbolWarningShown" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HideWhenMinimized" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "AlwaysOntop" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "OneInstance" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "NumColumnSets" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ConfirmKill" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "RefreshRate" /t REG_DWORD /d "1000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "PrcessColumnCount" /t REG_DWORD /d "12" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DllColumnCount" /t REG_DWORD /d "5" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "HandleColumnCount" /t REG_DWORD /d "2" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DefaultProcPropPage" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DefaultSysInfoPage" /t REG_DWORD /d "4" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DefaultDllPropPage" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "DbgHelpPath" /t REG_SZ /d "C:\Windows\SYSTEM32\dbghelp.dll" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "SymbolPath" /t REG_SZ /d "" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorPacked" /t REG_DWORD /d "16711808" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorImmersive" /t REG_DWORD /d "15395328" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorOwn" /t REG_DWORD /d "16765136" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorServices" /t REG_DWORD /d "13684991" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorRelocatedDlls" /t REG_DWORD /d "10551295" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorGraphBk" /t REG_DWORD /d "15790320" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorJobs" /t REG_DWORD /d "27856" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorDelProc" /t REG_DWORD /d "4605695" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorNewProc" /t REG_DWORD /d "4652870" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorNet" /t REG_DWORD /d "10551295" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorProtected" /t REG_DWORD /d "8388863" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowHeatmaps" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ColorSuspend" /t REG_DWORD /d "8421504" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "StatusBarColumns" /t REG_DWORD /d "13589" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowAllCpus" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowAllGpus" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "Opacity" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "GpuNodeUsageMask" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "GpuNodeUsageMask1" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "VerifySignatures" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "VirusTotalCheck" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "VirusTotalSubmitUnknown" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ToolbarBands" /t REG_BINARY /d "0601000000000000000000004b00000001000000000000004b00000002000000000000004b00000003000000000000004b0000000400000000000000400000000500000000000000500000000600000000000000930400000700000000000000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "UseGoogle" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowNewProcesses" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "TrayCPUHistory" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowIoTray" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowNetTray" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowDiskTray" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowPhysTray" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowCommitTray" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ShowGpuTray" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "FormatIoBytes" /t REG_DWORD /d "1" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "StackWindowPlacement" /t REG_BINARY /d "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer" /v "ETWstandardUserWarning" /t REG_DWORD /d "0" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "0" /t REG_DWORD /d "26" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "1" /t REG_DWORD /d "42" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "2" /t REG_DWORD /d "1033" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "3" /t REG_DWORD /d "1111" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumnMap" /v "4" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "0" /t REG_DWORD /d "110" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "1" /t REG_DWORD /d "180" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "2" /t REG_DWORD /d "140" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "3" /t REG_DWORD /d "300" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\DllColumns" /v "4" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumnMap" /v "0" /t REG_DWORD /d "21" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumnMap" /v "1" /t REG_DWORD /d "22" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumns" /v "0" /t REG_DWORD /d "100" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\HandleColumns" /v "1" /t REG_DWORD /d "450" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "0" /t REG_DWORD /d "3" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "1" /t REG_DWORD /d "1055" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "2" /t REG_DWORD /d "1650" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "3" /t REG_DWORD /d "1065" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "4" /t REG_DWORD /d "1200" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "5" /t REG_DWORD /d "1092" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "6" /t REG_DWORD /d "1340" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "7" /t REG_DWORD /d "5" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "8" /t REG_DWORD /d "1333" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "9" /t REG_DWORD /d "1636" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "10" /t REG_DWORD /d "4" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "11" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "12" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "13" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "14" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "15" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "16" /t REG_DWORD /d "1670" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "17" /t REG_DWORD /d "1653" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "18" /t REG_DWORD /d "1653" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumnMap" /v "19" /t REG_DWORD /d "1653" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "0" /t REG_DWORD /d "261" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "1" /t REG_DWORD /d "35" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "2" /t REG_DWORD /d "37" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "3" /t REG_DWORD /d "52" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "4" /t REG_DWORD /d "85" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "5" /t REG_DWORD /d "80" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "6" /t REG_DWORD /d "60" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "7" /t REG_DWORD /d "39" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "8" /t REG_DWORD /d "65" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "9" /t REG_DWORD /d "76" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "10" /t REG_DWORD /d "31" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "11" /t REG_DWORD /d "32" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "12" /t REG_DWORD /d "55" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "13" /t REG_DWORD /d "31" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "14" /t REG_DWORD /d "70" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "15" /t REG_DWORD /d "70" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t REG_DWORD /d "44" /f >NUL 2>&1
+REG ADD "HKCU\Software\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 ECHO  Importing Revi hosts file...
 del /F /Q "%WINDIR%\system32\drivers\etc\hosts" >NUL 2>&1
@@ -2986,3 +2556,11 @@ pause
 ::REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaximumSharedReadyQueueSize" /t REG_DWORD /d "1" /f >NUL 2>&1
 ::REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DisableAutoBoost" /t REG_DWORD /d "1" /f >NUL 2>&1
 ::REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DistributeTimers" /t REG_DWORD /d "1" /f >NUL 2>&1
+::QUESTIONABLE
+::BCDEDIT /set linearaddress57 OptOut >NUL 2>&1
+::BCDEDIT /set increaseuserva 268435328 >NUL 2>&1
+::BCDEDIT /set firstmegabytepolicy UseAll >NUL 2>&1
+::BCDEDIT /set avoidlowmemory 0x8000000 >NUL 2>&1
+::BCDEDIT /set nolowmem Yes >NUL 2>&1
+::Drivers and the kernel can be paged to disk as needed
+::REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "DisablePagingExecutive" /t REG_DWORD /d "1" /f >NUL 2>&1
