@@ -1,6 +1,5 @@
 @ECHO OFF &SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
-title Felipe.#8581 ~ Donate: bit.ly/3goAOyc 
-cd /D "%~dp0"
+title Felipe.#8581 ~ Donate: bit.ly/3goAOyc
 
 ECHO.
 ECHO  Tweaking improves latency, input lag, system responsiveness, not FPS
