@@ -24,6 +24,16 @@ sc config w32time start=demand >NUL 2>&1 & sc start w32time >NUL 2>&1
 w32tm /config /manualpeerlist:time.windows.com >NUL 2>&1
 w32tm /resync /rediscover >NUL 2>&1
 
+:: Set powerplans
+powercfg -import %WINDIR%\RevisionPowerPlanV2.8.pow >NUL 2>&1
+powercfg -import %WINDIR%\retard.pow >NUL 2>&1
+powercfg -import %WINDIR%\HighestPerformanceEnableIdle.pow >NUL 2>&1
+powercfg -import %WINDIR%\HighestPerformanceDisableIdle.pow >NUL 2>&1
+for /f "tokens=4" %%f in ('powercfg -list ^| findstr /C:"Revision"') do set GUID=%%f >NUL 2>&1
+powercfg -setactive %GUID% >NUL 2>&1
+powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
+powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
+
 :: Automatically set static ip while Dhcp is enabled, thanks to Phlegm
 if "%INTERFACE%"=="" for /F "tokens=3,*" %%i in ('netsh int show interface^|find "Connected"') do set INTERFACE=%%j
 if "%IP%"=="" for /F "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "IP Address" ^| findstr [0-9]') do set IP=%%i
