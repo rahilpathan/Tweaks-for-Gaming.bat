@@ -1176,6 +1176,8 @@ REG ADD "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "Mitig
 :: Manages power policy and power policy notification delivery and IDE Channel / Bricks Windows 7
 REG ADD "HKLM\System\CurrentControlSet\Services\Power" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 REG ADD "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+:: Disabling TL Corner right side
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\EdgeUI" /v "DisableTLcorner" /t REG_DWORD /d "1" /f >NUL 2>&1
 )
 ECHO %WinVersion% | find "Windows 10" > nul
 if %errorlevel% equ 0 (
