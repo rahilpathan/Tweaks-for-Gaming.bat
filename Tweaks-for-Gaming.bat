@@ -1008,11 +1008,12 @@ certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/m
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoRibbon" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoCaption" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoIcon" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoUpButton" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoUpButton" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NavBarGlass" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "IEButtons" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "DriveGrouping" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "HideFolders" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "Style" /t REG_DWORD /d "0" /f >NUL 2>&1
 cmd /c regsvr32 /s %windir%\OldNewExplorer32.dll >NUL 2>&1
 cmd /c regsvr32 /s %windir%\OldNewExplorer64.dll >NUL 2>&1
 :: Mouse fix
