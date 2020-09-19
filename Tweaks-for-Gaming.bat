@@ -16,7 +16,7 @@ whoami /groups | find "12288" >nul 2>&1
 if %errorlevel% neq 0 (
 echo This batch file must be Run as Administrator.
 pause
-exit /b 1
+exit /b 2
 )
 
 :: Automatically set static ip, Thanks to Phlegm
@@ -33,25 +33,20 @@ call:isValidIP %GATEWAY%
 call:isValidIP %DNS1%
 if defined DNS2 call:isValidIP %DNS2%
 if defined _notValidIP (
-echo Setting a static IP failed. Exiting program . . .
+echo  Setting a static IP failed. Exiting program . . .
 pause
-exit /b 1
+exit /b 2
 )
 netsh int ipv4 set address name="%INTERFACE%" static %IP% %MASK% %GATEWAY% >nul 2>&1
 netsh int ipv4 set dns name="%INTERFACE%" static %DNS1% primary >nul 2>&1
 if defined DNS2 netsh int ipv4 add dns name="%INTERFACE%" %DNS2% index=2 >nul 2>&1
 for /f "tokens=3 delims=: " %%i in ('netsh int ip show config name^="%INTERFACE%" ^| findstr "DHCP" ^| findstr [a-z]') do set DHCP=%%i
 if "%DHCP%"=="Yes" (
-echo Setting a static IP failed. Exiting program . . .
+echo  Setting a static IP failed. Exiting program . . .
 pause
 exit /b 2
 ) else (
-echo Restarting the Network Adapter . . .
 netsh int set interface name="%INTERFACE%" admin="disabled" && netsh int set interface name="%INTERFACE%" admin="enabled" >nul 2>&1
-echo Done.
-echo.
-pause
-exit /b 0
 )
 :isValidIP
 for /F "tokens=1-4 delims=./" %%a in ("%1") do (
@@ -700,8 +695,8 @@ reg add "HKCU\Software\Policies\Microsoft\InputPersonalization" /v "RestrictImpl
 :: Old Alt Tab
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "AltTabSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
 
-:: Remove Favorites From Navigation Pane
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "NavPaneShowFavorites" /t REG_DWORD /d "0" /f >NUL 2>&1
+:: Show hidden folders
+Reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Disable Show Windows Store Apps On The Taskbar
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "StoreAppsOnTaskbar" /t REG_DWORD /d "0" /f >NUL 2>&1
