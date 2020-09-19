@@ -991,7 +991,7 @@ for /F "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\Curren
 echo %WinVersion% | find "Windows 7" > nul
 if %errorlevel% equ 0 (
 :: Downloading finisher
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows7Finisher.bat %userprofile%/Desktop/Windows7Finisher.bat >NUL 2>&1
+::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows7Finisher.bat %userprofile%/Desktop/Windows7Finisher.bat >NUL 2>&1
 :: Disabling DWM
 reg add "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 :: Mouse fix
@@ -1004,7 +1004,16 @@ reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /
 echo %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
 :: Downloading finisher
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows8Finisher.bat %userprofile%/Desktop/Windows8Finisher.bat >NUL 2>&1
+::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows8Finisher.bat %userprofile%/Desktop/Windows8Finisher.bat >NUL 2>&1
+:: OldNewExplorer
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer64.dll %windir%/OldNewExplorer64.dll >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoRibbon" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoCaption" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoIcon" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoUpButton" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NavBarGlass" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "IEButtons" /t REG_DWORD /d "0" /f >NUL 2>&1
+cmd /c regsvr32 /s %windir%\OldNewExplorer64.dll >NUL 2>&1
 :: Mouse fix
 reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
 reg add add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
@@ -1015,7 +1024,7 @@ reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "Mitig
 echo %WinVersion% | find "Windows 10" > nul
 if %errorlevel% equ 0 (
 :: Downloading finisher
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows10Finisher.bat %userprofile%/Desktop/Windows10Finisher.bat >NUL 2>&1
+::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows10Finisher.bat %userprofile%/Desktop/Windows10Finisher.bat >NUL 2>&1
 :: Disable FSO Globally and GameDVR
 reg add "HKCU\Software\Microsoft\GameBar" /v "ShowStartupPanel" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKCU\Software\Microsoft\GameBar" /v "GamePanelStartupTipIndex" /t REG_DWORD /d "3" /f >NUL 2>&1
