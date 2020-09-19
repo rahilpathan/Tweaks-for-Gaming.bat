@@ -19,6 +19,14 @@ pause
 exit /b 2
 )
 
+:: Enabling necessary services
+powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
+sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
+sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >NUL 2>&1
+sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
+sc config DeviceInstall start=demand >NUL 2>&1 & sc start DeviceInstall >NUL 2>&1
+sc config Dhcp start=demand >NUL 2>&1 & sc start Dhcp >NUL 2>&1
+
 :: Automatically set static ip, Thanks to Phlegm
 set DNS1=156.154.70.22
 set DNS2=8.8.4.4
@@ -60,14 +68,6 @@ if %%d LSS 0 set _notValidIP=1
 if %%d GTR 255 set _notValidIP=1
 )
 
-echo  Preparation, removing protections and starting services
-powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
-powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
-sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
-sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >NUL 2>&1
-sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
-sc config DeviceInstall start=demand >NUL 2>&1 & sc start DeviceInstall >NUL 2>&1
-sc config Dhcp start=demand >NUL 2>&1 & sc start Dhcp >NUL 2>&1
 LODCTR /R >nul 2>&1
 LODCTR /R >nul 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -115,6 +115,12 @@ reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "Disa
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f >NUL 2>&1
 
+:: Image File Execution
+powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
+
 :: Installing AeroLite
 IF EXIST "%WinDir%\Resources\Themes\aero\aerolite.msstyles" (
 powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\aero.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\aerolite.theme', $content)"
@@ -122,9 +128,6 @@ IF EXIST "%WinDir%\Resources\Themes\light.theme" (
 powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\light.theme').Replace('%ResourceDir%\Themes\Aero\Aero.msstyles','%ResourceDir%\Themes\Aero\Aerolite.msstyles'); [System.IO.File]::WriteAllText('%WinDir%\Resources\Themes\lightlite.theme', $content)" 
 )
 )
-:: Installing Process Explorer...
-IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
 
 echo  Adding powerplans
 powercfg -restoredefaultschemes >NUL 2>&1
@@ -166,10 +169,6 @@ reg add "HKLM\System\CurrentControlSet\Control\usbflags" /v "fid_D3Latency" /t R
 for /F "tokens=*" %%a in ('reg query "HKLM\System\CurrentControlSet\Enum" /S /F "StorPort"^| FINDSTR /E "StorPort"') DO (
 reg add "%%a" /v "EnableIdlePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
 )
-
-echo  Tweaking Image File Execution
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
 
 echo  Tweaking Services
 for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
@@ -552,6 +551,8 @@ reg add "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d
 :: This will make the necessary use of static ip
 reg add "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Services\Dhcp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+:: This will make default task manager brick
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
 echo  Importing Main tweaks
 :: Process Scheduling
