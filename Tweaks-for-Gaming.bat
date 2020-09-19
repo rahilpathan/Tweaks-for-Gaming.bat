@@ -72,8 +72,8 @@ sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >N
 sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
 sc config DeviceInstall start=demand >NUL 2>&1 & sc start DeviceInstall >NUL 2>&1
 sc config Dhcp start=demand >NUL 2>&1 & sc start Dhcp >NUL 2>&1
-LODCTR /R
-LODCTR /R
+LODCTR /R >nul 2>&1
+LODCTR /R >nul 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableInstallerDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "PromptOnSecureDesktop" /t REG_DWORD /d "0" /f >NUL 2>&1
