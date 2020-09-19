@@ -1006,6 +1006,7 @@ if %errorlevel% equ 0 (
 :: Downloading finisher
 ::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows8Finisher.bat %userprofile%/Desktop/Windows8Finisher.bat >NUL 2>&1
 :: OldNewExplorer
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer32.dll %windir%/OldNewExplorer32.dll >NUL 2>&1
 certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer64.dll %windir%/OldNewExplorer64.dll >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoRibbon" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoCaption" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -1013,6 +1014,7 @@ reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoIcon" /t REG_DWORD /d "0" /f 
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoUpButton" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NavBarGlass" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "IEButtons" /t REG_DWORD /d "0" /f >NUL 2>&1
+cmd /c regsvr32 /s %windir%\OldNewExplorer32.dll >NUL 2>&1
 cmd /c regsvr32 /s %windir%\OldNewExplorer64.dll >NUL 2>&1
 :: Mouse fix
 reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
