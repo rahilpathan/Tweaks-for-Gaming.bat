@@ -1266,6 +1266,7 @@ reg add "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t 
 reg add "HKCU\Software\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :ending
+echo.
 echo  Finished with tweaking
 echo  Report feedbacks, end of script
 pause
