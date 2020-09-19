@@ -66,13 +66,14 @@ for /F "tokens=1-4 delims=./" %%a in ("%1") do (
 )
 
 echo  Preparation, removing protections and starting services
-:: ExecutionPolicy,UAC,WinUpdate,WinDefender
 powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
 sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
 sc config TrustedInstaller start=demand >NUL 2>&1 & sc start TrustedInstaller >NUL 2>&1
 sc config AppInfo start=demand >NUL 2>&1 & sc start AppInfo >NUL 2>&1
 sc config DeviceInstall start=demand >NUL 2>&1 & sc start DeviceInstall >NUL 2>&1
 sc config Dhcp start=demand >NUL 2>&1 & sc start Dhcp >NUL 2>&1
+LODCTR /R
+LODCTR /R
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableInstallerDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "PromptOnSecureDesktop" /t REG_DWORD /d "0" /f >NUL 2>&1
