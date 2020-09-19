@@ -55,14 +55,14 @@ exit /b 0
 )
 :isValidIP
 for /F "tokens=1-4 delims=./" %%a in ("%1") do (
-	if %%a LSS 1 set _notValidIP=1
-	if %%a GTR 255 set _notValidIP=1
-	if %%b LSS 0 set _notValidIP=1
-	if %%b GTR 255 set _notValidIP=1
-	if %%c LSS 0 set _notValidIP=1
-	if %%c GTR 255 set _notValidIP=1
-	if %%d LSS 0 set _notValidIP=1
-	if %%d GTR 255 set _notValidIP=1
+if %%a LSS 1 set _notValidIP=1
+if %%a GTR 255 set _notValidIP=1
+if %%b LSS 0 set _notValidIP=1
+if %%b GTR 255 set _notValidIP=1
+if %%c LSS 0 set _notValidIP=1
+if %%c GTR 255 set _notValidIP=1
+if %%d LSS 0 set _notValidIP=1
+if %%d GTR 255 set _notValidIP=1
 )
 
 echo  Preparation, removing protections and starting services
@@ -737,9 +737,6 @@ reg add "HKU\.DEFAULT\Control Panel\Accessibility\StickyKeys" /v "Flags" /t REG_
 reg add "HKU\.DEFAULT\Control Panel\Accessibility\TimeOut" /v "Flags" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Accessibility\ToggleKeys" /v "Flags" /t REG_SZ /d "0" /f >NUL 2>&1
 
-:: Enable All Folders in Explorer Navigation Panel
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "NavPaneShowAllFolders" /t REG_DWORD /d "1" /f >NUL 2>&1
-
 :: Disable automatic folder type discovery
 reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "FolderType" /t REG_SZ /d "NotSpecified" /f >NUL 2>&1
 reg delete "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags" /f >NUL 2>&1
@@ -1338,3 +1335,5 @@ pause
 ::bcdedit /set firstmegabytepolicy UseAll
 ::bcdedit /set avoidlowmemory 0x8000000
 ::bcdedit /set nolowmem Yes
+:: Enable All Folders in Explorer Navigation Panel ?????????????????????????????
+:: reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "NavPaneShowAllFolders" /t REG_DWORD /d "1" /f >NUL 2>&1
