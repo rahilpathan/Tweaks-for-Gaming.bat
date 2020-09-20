@@ -112,7 +112,6 @@ reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "Serv
 powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "IoPriority" /t REG_DWORD /d "3" /f >NUL 2>&1
-IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
 
 :: Installing AeroLite
 IF EXIST "%WinDir%\Resources\Themes\aero\aerolite.msstyles" (
@@ -389,165 +388,163 @@ reg add "HKLM\System\CurrentControlSet\Services\Wcnfs" /v "Start" /t REG_DWORD /
 reg add "HKLM\System\CurrentControlSet\Services\WindowsTrustedRT" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Microsoft Windows Trusted Runtime Secure Service
 reg add "HKLM\System\CurrentControlSet\Services\WindowsTrustedRTProxy" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Background Activity Moderator Driver (W10Default=1)
+:: Background Activity Moderator Driver
 reg add "HKLM\System\CurrentControlSet\Services\bam" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: CNG Hardware Assist algorithm provider (W10Default=4) (W8Default=Empty)
+:: CNG Hardware Assist algorithm provider
 reg add "HKLM\System\CurrentControlSet\Services\cnghwassist" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Disk I/O Rate Filter Driver (W10Default=0)
+:: Disk I/O Rate Filter Driver 
 reg add "HKLM\System\CurrentControlSet\Services\iorate" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Security Events Component Minifilter (W10Default=0)
+:: Security Events Component Minifilter 
 reg add "HKLM\System\CurrentControlSet\Services\mssecflt" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Tunnel Miniport Adapter Driver (W10Default=3)
 reg add "HKLM\System\CurrentControlSet\Services\tunnel" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Virtual WiFi Filter Driver (W10Default=1)
+:: Virtual WiFi Filter Driver
 reg add "HKLM\System\CurrentControlSet\Services\vwififlt" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: ACPI Processor Aggregator Driver (W8Default=3)
+:: ACPI Processor Aggregator Driver
 reg add "HKLM\System\CurrentControlSet\Services\acpipagr" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: ACPI Power Meter Driver (W8Default=3)
+:: ACPI Power Meter Driver
 reg add "HKLM\System\CurrentControlSet\Services\AcpiPmi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: ACPI Wake Alarm Driver (W8Default=3)
+:: ACPI Wake Alarm Driver
 reg add "HKLM\System\CurrentControlSet\Services\Acpitime" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Most useless driver to exist (W8Default=1)
+:: Most useless driver to exist
 reg add "HKLM\System\CurrentControlSet\Services\Beep" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: NT Lan Manager Datagram Receiver Driver (W8Default=3)
+:: NT Lan Manager Datagram Receiver Driver
 reg add "HKLM\System\CurrentControlSet\Services\bowser" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: CD/DVD File System Reader (W8Default=4)
+:: CD/DVD File System Reader
 reg add "HKLM\System\CurrentControlSet\Services\cdfs" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: CD-ROM Driver / Cannot use programs like rufus (W8Default=1)
+:: CD-ROM Driver / Cannot use programs like rufus
 reg add "HKLM\System\CurrentControlSet\Services\cdrom" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Common Log / General-purpose logging service (W8Default=0)
+:: Common Log / General-purpose logging service
 reg add "HKLM\System\CurrentControlSet\Services\CLFS" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Composite Bus Enumerator Driver (W8Default=3)
+:: Composite Bus Enumerator Driver
 reg add "HKLM\System\CurrentControlSet\Services\CompositeBus" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Console Driver (W8Default=3)
+:: Console Driver
 reg add "HKLM\System\CurrentControlSet\Services\condrv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Offline Files Driver (W8Default=1)
+:: Offline Files Driver
 reg add "HKLM\System\CurrentControlSet\Services\CSC" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Desktop Activity Moderator Driver (W8Default=1)
+:: Desktop Activity Moderator Driver
 reg add "HKLM\System\CurrentControlSet\Services\dam" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: DFS Namespace Client Driver (W8Default=1)
+:: DFS Namespace Client Driver
 reg add "HKLM\System\CurrentControlSet\Services\dfsc" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Enhanced Storage Filter Driver (W8Default=0)
+:: Enhanced Storage Filter Driver
 reg add "HKLM\System\CurrentControlSet\Services\EhStorClass" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: FAT12/16/32 File System Driver (W8Default=3)
+:: FAT12/16/32 File System Driver
 reg add "HKLM\System\CurrentControlSet\Services\fastfat" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: File Information FS MiniFilter (W8Default=0)
+:: File Information FS MiniFilter
 reg add "HKLM\System\CurrentControlSet\Services\FileInfo" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: BitLocker Drive Encryption Filter Driver (W8Default=0)
+:: BitLocker Drive Encryption Filter Driver
 reg add "HKLM\System\CurrentControlSet\Services\fvevol" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Kernel Debug Network Miniport NDIS 6.20 (W8Default=3)
+:: Kernel Debug Network Miniport NDIS 6.20
 reg add "HKLM\System\CurrentControlSet\Services\kdnic" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Kernel Security Support Provider Interface Packages (W8Default=0)
+:: Kernel Security Support Provider Interface Packages
 reg add "HKLM\System\CurrentControlSet\Services\KSecPkg" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Link-Layer Topology Discovery Mapper I/O Driver (W8Default=2)
+:: Link-Layer Topology Discovery Mapper I/O Driver
 reg add "HKLM\System\CurrentControlSet\Services\lltdio" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: UAC File Virtualization (W8Default=2)
+:: UAC File Virtualization
 reg add "HKLM\System\CurrentControlSet\Services\luafv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Modem Device Driver (W8Default=3)
+:: Modem Device Driver
 reg add "HKLM\System\CurrentControlSet\Services\Modem" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: The Networking-MPSSVC-Svc component is part of Windows Firewall (W8Default=2)
+:: The Networking-MPSSVC-Svc component is part of Windows Firewall
 reg add "HKLM\System\CurrentControlSet\Services\MpsSvc" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Windows Defender Firewall Authorization Driver (W8Default=3)
+:: Windows Defender Firewall Authorization Driver
 reg add "HKLM\System\CurrentControlSet\Services\mpsdrv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: SMB MiniRedirector Wrapper and Engine (W8Default=3)
+:: SMB MiniRedirector Wrapper and Engine
 reg add "HKLM\System\CurrentControlSet\Services\mrxsmb" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: SMB 1.x MiniRedirector (W8Default=2)
+:: SMB 1.x MiniRedirector
 reg add "HKLM\System\CurrentControlSet\Services\Mrxsmb10" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: SMB 2.0 MiniRedirector (W8Default=3)
+:: SMB 2.0 MiniRedirector
 reg add "HKLM\System\CurrentControlSet\Services\Mrxsmb20" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Disabling breaks laptop keyboards and PS2 keyboards (W8Default=0)
+:: Disabling breaks laptop keyboards and PS2 keyboards
 reg add "HKLM\System\CurrentControlSet\Services\msisadrv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Link-Layer Discovery Protocol (W8Default=3)
+:: Link-Layer Discovery Protocol
 reg add "HKLM\System\CurrentControlSet\Services\MsLldp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: System Management BIOS Driver (W8Default=1)
+:: System Management BIOS Driver
 reg add "HKLM\System\CurrentControlSet\Services\mssmbios" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: NDIS Capture (W8Default=3)
+:: NDIS Capture
 reg add "HKLM\System\CurrentControlSet\Services\NdisCap" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Remote Access NDIS TAPI Driver (W8Default=3)
+:: Remote Access NDIS TAPI Driver
 reg add "HKLM\System\CurrentControlSet\Services\NdisTapi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Virtual Network Adapter Enumerator (W8Default=3)
+:: Virtual Network Adapter Enumerator
 reg add "HKLM\System\CurrentControlSet\Services\NdisVirtualBus" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Remote Access NDIS WAN Driver (W8Default=3)
+:: Remote Access NDIS WAN Driver
 reg add "HKLM\System\CurrentControlSet\Services\NdisWan" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: NDIS Proxy Driver  (W8Default=3)
+:: NDIS Proxy Driver 
 reg add "HKLM\System\CurrentControlSet\Services\Ndproxy" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Windows Network Data Usage Monitoring Driver (W8Default=2)
+:: Windows Network Data Usage Monitoring Driver
 reg add "HKLM\System\CurrentControlSet\Services\Ndu" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: NetBIOS interface driver (W8Default=1) 
+:: NetBIOS interface driver 
 reg add "HKLM\System\CurrentControlSet\Services\NetBIOS" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Implements NetBios over TCP/IP (W8Default=1)
+:: Implements NetBios over TCP/IP
 reg add "HKLM\System\CurrentControlSet\Services\NetBT" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Named pipe service trigger provider (W8Default=1)
+:: Named pipe service trigger provider
 reg add "HKLM\System\CurrentControlSet\Services\Npsvctrig" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Protected Environment Authentication and Authorization Export Driver (W8Default=2)
+:: Protected Environment Authentication and Authorization Export Driver
 reg add "HKLM\System\CurrentControlSet\Services\PEAUTH" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: QoS Packet Scheduler (W8Default=1)
+:: QoS Packet Scheduler
 reg add "HKLM\System\CurrentControlSet\Services\Psched" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: QWAVE enhances AV streaming performance and reliability by ensuring network QoS for AV apps (W8Default=3)
+:: QWAVE enhances AV streaming performance and reliability by ensuring network QoS for AV apps
 reg add "HKLM\System\CurrentControlSet\Services\QWAVEdrv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Remote Access Auto Connection Driver (W8Default=3)
+:: Remote Access Auto Connection Driver
 reg add "HKLM\System\CurrentControlSet\Services\RasAcd" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Remote Access PPPOE Driver (W8Default=3)
+:: Remote Access PPPOE Driver
 reg add "HKLM\System\CurrentControlSet\Services\RasPppoe" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Redirected Buffering Sub System (W8Default=1)
+:: Redirected Buffering Sub System
 reg add "HKLM\System\CurrentControlSet\Services\rdbss" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Remote Desktop Device Redirector Bus Driver (W8Default=3)
+:: Remote Desktop Device Redirector Bus Driver
 reg add "HKLM\System\CurrentControlSet\Services\rdpbus" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Usually already stripped in custom isos (W8Default=0)
+:: Usually already stripped in custom isos
 reg add "HKLM\System\CurrentControlSet\Services\rdyboost" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Link-Layer Topology Discovery Responder (W8Default=2)
+:: Link-Layer Topology Discovery Responder
 reg add "HKLM\System\CurrentControlSet\Services\rspndr" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Serial Mouse Driver / Needed for ps2 mice (W8Default=3)
+:: Serial Mouse Driver / Needed for ps2 mice
 reg add "HKLM\System\CurrentControlSet\Services\sermouse" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Storage Spaces Driver (W8Default=0)
+:: Storage Spaces Driver
 reg add "HKLM\System\CurrentControlSet\Services\spaceport" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Server SMB 2.xxx Driver (W8Default=3)
+:: Server SMB 2.xxx Driver
 reg add "HKLM\System\CurrentControlSet\Services\srv2" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Server network driver (W8Default=3)
+:: Server network driver
 reg add "HKLM\System\CurrentControlSet\Services\Srvnet" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Central repository of Telephony data (W8Default=3)
+:: Central repository of Telephony data
 reg add "HKLM\System\CurrentControlSet\Services\TapiSrv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: IPv6 Protocol Driver (W8Default=3)
+:: IPv6 Protocol Driver
 reg add "HKLM\System\CurrentControlSet\Services\Tcpip6" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: TCP/IP registry compatibility driver (W8Default=2)
+:: TCP/IP registry compatibility driver
 reg add "HKLM\System\CurrentControlSet\Services\tcpipreg" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: TDI translation driver (W8Default=1)
+:: TDI translation driver
 reg add "HKLM\System\CurrentControlSet\Services\tdx" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Trusted Platform Module (W8Default=3)
+:: Trusted Platform Module
 reg add "HKLM\System\CurrentControlSet\Services\TPM" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Reads/Writes UDF 1.02,1.5,2.0x,2.5 disc formats, usually found on C/DVD discs (W8Default=4)
+:: Reads/Writes UDF 1.02,1.5,2.0x,2.5 disc formats, usually found on C/DVD discs
 reg add "HKLM\System\CurrentControlSet\Services\udfs" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Can be disabled on UEFI. Bricks some systems (W8Default=3)
+:: Can be disabled on UEFI. Bricks some systems
 reg add "HKLM\System\CurrentControlSet\Services\UEFI" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: UMBus Enumerator Driver (W8Default=3)
+:: UMBus Enumerator Driver
 reg add "HKLM\System\CurrentControlSet\Services\umbus" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Virtual Drive Root Enumerator file (W8Default=0)
+:: Virtual Drive Root Enumerator file
 reg add "HKLM\System\CurrentControlSet\Services\vdrvroot" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Hyper-V Virtualization Infrastructure Driver (W8Default=3)
+:: Hyper-V Virtualization Infrastructure Driver
 reg add "HKLM\System\CurrentControlSet\Services\Vid" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Volume Manager Driver (W8Default=0)
+:: Volume Manager Driver
 reg add "HKLM\System\CurrentControlSet\Services\Volmgrx" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Virtual Wireless Bus Driver (W8Default=3)
+:: Virtual Wireless Bus Driver
 reg add "HKLM\System\CurrentControlSet\Services\vwifibus" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Related to windows defender (W8Default=0)
+:: Related to windows defender
 reg add "HKLM\System\CurrentControlSet\Services\Wdboot" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Related to windows defender (W8Default=0)
+:: Related to windows defender
 reg add "HKLM\System\CurrentControlSet\Services\WdFilter" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Related to windows defender (W8Default=3)
+:: Related to windows defender
 reg add "HKLM\System\CurrentControlSet\Services\WdNisDrv" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Windows defender (W8Default=2)
+:: Windows defender
 reg add "HKLM\System\CurrentControlSet\Services\WinDefend" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Microsoft Windows Management Interface for ACPI (W8Default=3)
+:: Microsoft Windows Management Interface for ACPI
 reg add "HKLM\System\CurrentControlSet\Services\WmiAcpi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: Winsock IFS Driver (W8Default=4)
+:: Winsock IFS Driver
 reg add "HKLM\System\CurrentControlSet\Services\ws2ifsl" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: This can be disabled, but it breaks some functionality of the kernel. Null is required for piping thus for some programs to work, like wget and wsusoffline (W8Default=1)
+:: This can be disabled, but it breaks some functionality of the kernel. Null is required for piping thus for some programs to work, like wget and wsusoffline
 reg add "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d "1" /f >NUL 2>&1
 :: This will make the necessary use of static ip
 reg add "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Services\Dhcp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: This will make default task manager brick
-IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
 echo  Importing Main tweaks
 :: Process Scheduling
@@ -986,8 +983,8 @@ reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /
 echo %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
 :: OldNewExplorer
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer32.dll %windir%/OldNewExplorer32.dll >NUL 2>&1
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer64.dll %windir%/OldNewExplorer64.dll >NUL 2>&1
+IF NOT EXIST %SystemDrive%\Felipe\OldNewExplorer32.dll certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer32.dll %SystemDrive%\Felipe\OldNewExplorer32.dll >NUL 2>&1
+IF NOT EXIST %SystemDrive%\Felipe\OldNewExplorer64.dll certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer64.dll %SystemDrive%\Felipe\OldNewExplorer64.dll >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoRibbon" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoCaption" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoIcon" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -997,8 +994,8 @@ reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "IEButtons" /t REG_DWORD /d "0" 
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "DriveGrouping" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "HideFolders" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "Style" /t REG_DWORD /d "0" /f >NUL 2>&1
-cmd /c regsvr32 /s %windir%\OldNewExplorer32.dll >NUL 2>&1
-cmd /c regsvr32 /s %windir%\OldNewExplorer64.dll >NUL 2>&1
+cmd /c regsvr32 /s %SystemDrive%\Felipe\OldNewExplorer32.dll >NUL 2>&1
+cmd /c regsvr32 /s %SystemDrive%\Felipe\OldNewExplorer64.dll >NUL 2>&1
 :: Mouse fix
 reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
 reg add add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
@@ -1038,28 +1035,8 @@ reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "Mitig
 )
 
 echo  Debloating...
-:: Google Chrome
-taskkill /f /im chrome.exe >NUL 2>&1
-schtasks.exe /change /TN "\GoogleUpdateTaskMachineCore" /Disable >NUL 2>&1
-schtasks.exe /change /TN "\GoogleUpdateTaskMachineUA" /Disable >NUL 2>&1
-del "c:\program files\google\chrome\application\85.0.4183.102\installer\chrmstp.exe" >NUL 2>&1
-sc delete gupdate >NUL 2>&1
-sc delete gupdatem >NUL 2>&1
-sc delete GoogleChromeElevationService >NUL 2>&1
-:: Firefox
-reg add "HKLM\SOFTWARE\Policies\Mozilla\Firefox" /v "DisableAppUpdate" /t REG_DWORD /d "1" /f >NUL 2>&1
-:: Notepad++
-taskkill /f /im notepad++.exe >NUL 2>&1
-del /F /Q "%ProgramFiles%\Notepad++\updater" >NUL 2>&1
-:: Easy7zip
-taskkill /f /im 7zFM.exe >NUL 2>&1
-reg add "HKCU\Software\7-Zip\Options" /v "CascadedMenu" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Software\7-Zip\Options" /v "MenuIcons" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKCU\Software\7-Zip\Options" /v "ContextMenu" /t REG_DWORD /d "4132" /f >NUL 2>&1
-reg add "HKCU\Software\7-Zip\FM\Columns" /v "RootFolder" /t REG_BINARY /d "0100000000000000010000000400000001000000A0000000" /f >NUL 2>&1
-del "C:\Users\Public\Desktop\7-Zip File Manager.lnk" >NUL 2>&1
 :: Discord
-taskkill /f /im discord.exe >NUL 2>&1
+taskkill /f /im Discord.exe >NUL 2>&1
 DEL "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_modules\397863cd8f\2\discord_game_sdk_x64.dll" /F /Q >NUL 2>&1
 DEL "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_modules\397863cd8f\2\discord_game_sdk_x86.dll" /F /Q >NUL 2>&1
 rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_cloudsync" >NUL 2>&1
@@ -1072,8 +1049,10 @@ rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_overlay2" >
 rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_rpc" >NUL 2>&1
 rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_Spellcheck" >NUL 2>&1
 attrib +r "%localappdata%\Discord\Update.exe" >NUL 2>&1
+del "%userprofile%\Desktop\Discord.lnk" >NUL 2>&1
+mklink "%userprofile%\Desktop\Discord.lnk" "%localappdata%\Discord\app-0.0.308\Discord.exe" >NUL 2>&1
 :: Spotify
-taskkill /f /im spotify.exe >NUL 2>&1
+taskkill /f /im Spotify.exe >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\SpotifyMigrator.exe" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\SpotifyStartupTask.exe" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\Apps\Buddy-list.spa" >NUL 2>&1
@@ -1161,7 +1140,36 @@ del /f/s/q "%appdata%\Spotify\locales\vi.pak" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-CN.pak" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-Hant.mo" >NUL 2>&1
 del /f/s/q "%appdata%\Spotify\locales\zh-TW.pak" >NUL 2>&1
+
+:: Google Chrome
+taskkill /f /im chrome.exe >NUL 2>&1
+IF NOT EXIST "C:\Program Files\Google\Chrome\Application\chrome.exe" IF NOT EXIST %SystemDrive%\Felipe\ChromeSetup.exe certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/ChromeSetup.exe %SystemDrive%\Felipe\ChromeSetup.exe >NUL 2>&1
+IF NOT EXIST "C:\Program Files\Google\Chrome\Application\chrome.exe" start "" /wait "%SystemDrive%\Felipe\ChromeSetup.exe" /silent /install >NUL 2>&1
+schtasks.exe /change /TN "\GoogleUpdateTaskMachineCore" /Disable >NUL 2>&1
+schtasks.exe /change /TN "\GoogleUpdateTaskMachineUA" /Disable >NUL 2>&1
+del "c:\program files\google\chrome\application\85.0.4183.102\installer\chrmstp.exe" >NUL 2>&1
+sc delete gupdate >NUL 2>&1
+sc delete gupdatem >NUL 2>&1
+sc delete GoogleChromeElevationService >NUL 2>&1
+:: Notepad++
+taskkill /f /im Notepad++.exe >NUL 2>&1
+IF NOT EXIST "C:\Program Files\Notepad++\notepad++.exe" IF NOT EXIST %SystemDrive%\Felipe\Notepad++.exe certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/Notepad++.exe %SystemDrive%\Felipe\Notepad++.exe >NUL 2>&1
+IF NOT EXIST "C:\Program Files\Notepad++\notepad++.exe" start "nppInstaller" "%SystemDrive%\Felipe\Notepad++.exe" /S /D=%ProgramFiles%\Notepad++\ >NUL 2>&1
+del /F /Q "%ProgramFiles%\Notepad++\updater" >NUL 2>&1
+:: Easy7zip
+taskkill /f /im 7zFM.exe >NUL 2>&1
+IF NOT EXIST "C:\Program Files\Easy 7-Zip\7zFM.exe" IF NOT EXIST %SystemDrive%\Felipe\Easy7zip.exe certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/Easy7zip.exe %SystemDrive%\Felipe\Easy7zip.exe >NUL 2>&1
+IF NOT EXIST "C:\Program Files\Easy 7-Zip\7zFM.exe" start "" /wait "%SystemDrive%\Felipe\Easy7zip.exe" /SILENT >NUL 2>&1
+reg add "HKCU\Software\7-Zip\Options" /v "CascadedMenu" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\7-Zip\Options" /v "MenuIcons" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\7-Zip\Options" /v "ContextMenu" /t REG_DWORD /d "4132" /f >NUL 2>&1
+reg add "HKCU\Software\7-Zip\FM\Columns" /v "RootFolder" /t REG_BINARY /d "0100000000000000010000000400000001000000A0000000" /f >NUL 2>&1
+del "C:\Users\Public\Desktop\7-Zip File Manager.lnk" >NUL 2>&1
 :: Process Explorer
+taskkill /f /im procexp64.exe >NUL 2>&1
+IF NOT EXIST %SystemDrive%\Felipe\procexp64.exe certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/procexp64.exe %SystemDrive%\Felipe\procexp64.exe >NUL 2>&1
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "EulaAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "Windowplacement" /t REG_BINARY /d "2c0000000200000003000000ffffffffffffffffffffffffffffffff75030000110000009506000069020000" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "FindWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000096000000960000000000000000000000" /f >NUL 2>&1
