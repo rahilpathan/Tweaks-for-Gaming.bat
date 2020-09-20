@@ -11,14 +11,6 @@ echo  Automatization is not the best way, please learn tweaking
 echo  You can start reading all guides on Revision discord (revi.cc)
 echo.
 
-:: Check for admin Privileges
-whoami /groups | find "12288" >nul 2>&1
-if %errorlevel% neq 0 (
-echo This batch file must be Run as Administrator.
-pause
-exit /b 2
-)
-
 :: Enabling necessary services
 powershell "Set-ExecutionPolicy -ExecutionPolicy Unrestricted" >NUL 2>&1
 sc config Winmgmt start=demand >NUL 2>&1 & sc start Winmgmt >NUL 2>&1
@@ -70,6 +62,7 @@ if %%d GTR 255 set _notValidIP=1
 
 LODCTR /R >nul 2>&1
 LODCTR /R >nul 2>&1
+
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableVirtualization" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableInstallerDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "PromptOnSecureDesktop" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -311,7 +304,7 @@ reg add "%%r" /v "WolShutdownLinkSpeed" /t REG_SZ /d "2" /f >NUL 2>&1
 for /F %%n in ('wmic path win32_networkadapter get PNPDeviceID ^| findstr /L "VEN_"') do (
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\Affinity Policy" /v "AssignmentSetOverride" /t REG_BINARY /d "04" /f >NUL 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\Affinity Policy" /v "DevicePolicy" /t REG_DWORD /d "4" /f >NUL 2>&1
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MessageNumberLimit" /t REG_DWORD /d "256" /f >NUL 2>&1
+::reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MessageNumberLimit" /t REG_DWORD /d "256" /f >NUL 2>&1
 )
 
 powershell Set-NetTCPSetting -SettingName internet -ScalingHeuristics disabled -ErrorAction SilentlyContinue
@@ -561,7 +554,7 @@ IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Service
 
 echo  Importing Main tweaks
 :: Process Scheduling
-reg add "HKLM\System\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "37" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "38" /f >NUL 2>&1
 
 :: Disabling Mitigations...
 powershell "ForEach($v in (Get-Command -Name \"Set-ProcessMitigation\").Parameters[\"Disable\"].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $v.ToString() -ErrorAction SilentlyContinue}" >NUL 2>&1
@@ -601,7 +594,14 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "DpiMapIommuC
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "PreferSystemMemoryContiguous" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "DisableWriteCombining" /t REG_DWORD /d "1" /f >NUL 2>&1
 
-:: Disable additional NTFS/ReFS mitigations
+:: Multimedia Profile
+reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "10" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d "6" /f >NUL 2>&1
+
+:: Unlock Silk Smoothness
+reg add "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f >NUL 2>&1
+
+:: Disable NTFS/ReFS mitigations
 reg add "HKLM\System\CurrentControlSet\Control\Session Manager" /v "ProtectionMode" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: Drivers and the kernel can be paged to disk as needed
@@ -624,13 +624,6 @@ WMIC pagefileset where name="C:\\pagefile.sys" set InitialSize=32768,MaximumSize
 :no16gb
 
 echo  Importing Minimal tweaks
-:: Multimedia Profile
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "10" /f >NUL 2>&1
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" /v "Priority" /t REG_DWORD /d "6" /f >NUL 2>&1
-
-:: Unlock Silk Smoothness
-reg add "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f >NUL 2>&1
-
 :: Disable automatic folder type discovery
 Reg.exe delete "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags" /f >NUL 2>&1
 reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "FolderType" /t REG_SZ /d "NotSpecified" /f >NUL 2>&1
@@ -818,9 +811,6 @@ reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v
 :: Small Start Menu Icons
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Start_LargeMFUIcons" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-:: Black Background
-reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background" /v "OEMBackground" /t REG_DWORD /d "1" /f >NUL 2>&1
-
 :: System properties - performance options - adjust for best performance
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d "2" /f >NUL 2>&1
 
@@ -878,12 +868,6 @@ reg add "HKLM\Software\Policies\Microsoft\Windows\EnhancedStorageDevices" /v "TC
 reg add "HKLM\Software\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\safer\codeidentifiers" /v "authenticodeenabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Error Reporting" /v "DontSendAdditionalData" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowIndexingEncryptedStoresOrItems" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowSearchToUseLocation" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AlwaysUseAutoLangDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "ConnectedSearchUseWeb" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Control\WMI\AutoLogger\AutoLogger-Diagtrack-Listener" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Control\WMI\AutoLogger\SQMLogger" /v "Start" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -938,10 +922,15 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "AllowCortana
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "BingSearchEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "CortanaEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "SearchboxTaskbarMode" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCloudSearch" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKLM\Software\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowIndexingEncryptedStoresOrItems" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AllowSearchToUseLocation" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "AlwaysUseAutoLangDetection" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "ConnectedSearchUseWeb" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Remove Metadata Tracking
 reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\Device Metadata" /f >NUL 2>&1
@@ -954,7 +943,7 @@ echo  BCD Params
 bcdedit /set disabledynamictick yes >NUL 2>&1
 :: Disable synthetic tick
 bcdedit /set useplatformtick Yes >NUL 2>&1
-:: Sync Policy
+:: Enhanced Sync Policy
 bcdedit /set tscsyncpolicy Enhanced >NUL 2>&1
 :: Disable Data Execution Prevention Security Feature
 bcdedit /set nx AlwaysOff >NUL 2>&1
@@ -991,8 +980,6 @@ echo  Settings based on Windows Version
 for /F "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v "ProductName"') do set "WinVersion=%%A %%B"
 echo %WinVersion% | find "Windows 7" > nul
 if %errorlevel% equ 0 (
-:: Downloading finisher
-::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows7Finisher.bat %userprofile%/Desktop/Windows7Finisher.bat >NUL 2>&1
 :: Disabling DWM
 reg add "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 :: Mouse fix
@@ -1004,86 +991,6 @@ reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /
 )
 echo %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
-:: Downloading finisher
-::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows8Finisher.bat %userprofile%/Desktop/Windows8Finisher.bat >NUL 2>&1
-:: OpenShell downloading openshell not working atm
-::certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OpenShellSetup.exe "%WINDIR%\OpenShellSetup.exe" >NUL 2>&1
-::"%WINDIR%\OpenShellSetup.exe" /qn ADDLOCAL=StartMenu >NUL 2>&1
-del "%programfiles%\Open-Shell\Menu Settings.xml" >NUL 2>&1
-echo ^<?xml version=^"1.0^"?^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Settings component=^"StartMenu^" version=^"4.4.142^"^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuStyle value=^"Win7^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ShiftClick value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ShiftWin value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<AllProgramsMetro value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<OpenPrograms value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ProgramsMenuDelay value=^"400^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<RecentPrograms value=^"None^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableJumplists value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<HybridShutdown value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<StartScreenShortcut value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<AutoStart value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<HighlightNew value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<HighlightNewApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<CheckWinUpdates value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SplitMenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<InfotipDelay value=^"0,0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<DragHideDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableAccessibility value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<DelayIcons value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SearchMetroApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SearchInternet value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MainMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SubMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuFadeSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuShadow value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkinW7 value=^"Dark^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkinVariationW7 value=^"^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>USER_IMAGE=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>SMALL_ICONS=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>LARGE_FONT=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>ALL_DARK=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>SCROLL=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>GLYPHS=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<^/SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<CustomTaskbar value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<TaskbarLook value=^"Opaque^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<TaskbarOpacity value=^"100^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<TaskbarColor value=^"1644825^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkipMetro value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<DisableHotCorner value=^"DisableAll^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item1.Command=computer^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item1.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item2.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item2.Settings=ITEM_DISABLED^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item3.Command=desktop^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item3.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item4.Command=user_documents^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item4.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item5.Command=downloads^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item5.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item6.Command=user_music^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item6.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item7.Command=user_pictures^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item7.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item8.Command=user_videos^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item8.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item9.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item10.Command=control_panel^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item10.Settings=TRACK_RECENT^|NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item11.Command=pc_settings^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item11.Settings=TRACK_RECENT^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item12.Command=run^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<^/MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableContextMenu value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ShowNewFolder value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableExit value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableExplorer value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<^/Settings^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-"%programfiles%/Open-Shell/StartMenu.exe" -xml "%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
 :: OldNewExplorer
 certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer32.dll %windir%/OldNewExplorer32.dll >NUL 2>&1
 certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer64.dll %windir%/OldNewExplorer64.dll >NUL 2>&1
@@ -1107,8 +1014,6 @@ reg add "HKLM\System\CurrentControlSet\Control\Session Manager\kernel" /v "Mitig
 )
 echo %WinVersion% | find "Windows 10" > nul
 if %errorlevel% equ 0 (
-:: Downloading finisher
-::certutil -urlcache -Unicode -f https://github.com/Felipe8581/Tweaks-for-Gaming.bat/raw/master/Windows10Finisher.bat %userprofile%/Desktop/Windows10Finisher.bat >NUL 2>&1
 :: Disable FSO Globally and GameDVR
 reg add "HKCU\Software\Microsoft\GameBar" /v "ShowStartupPanel" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKCU\Software\Microsoft\GameBar" /v "GamePanelStartupTipIndex" /t REG_DWORD /d "3" /f >NUL 2>&1
@@ -1399,26 +1304,85 @@ reg add "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "14" /t 
 reg add "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "15" /t REG_DWORD /d "70" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t REG_DWORD /d "44" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
+::OpenShell
+del "%programfiles%\Open-Shell\Menu Settings.xml" >NUL 2>&1
+echo ^<?xml version=^"1.0^"?^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Settings component=^"StartMenu^" version=^"4.4.142^"^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<MenuStyle value=^"Win7^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<ShiftClick value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<ShiftWin value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<AllProgramsMetro value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<OpenPrograms value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<ProgramsMenuDelay value=^"400^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<RecentPrograms value=^"None^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<EnableJumplists value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<HybridShutdown value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<StartScreenShortcut value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<AutoStart value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<HighlightNew value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<HighlightNewApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<CheckWinUpdates value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<MenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SplitMenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<InfotipDelay value=^"0,0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<DragHideDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<EnableAccessibility value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<DelayIcons value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SearchMetroApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SearchInternet value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<MainMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SubMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<MenuFadeSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<MenuShadow value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SkinW7 value=^"Dark^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SkinVariationW7 value=^"^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>USER_IMAGE=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>SMALL_ICONS=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>LARGE_FONT=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>ALL_DARK=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>SCROLL=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>GLYPHS=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<^/SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<CustomTaskbar value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<TaskbarLook value=^"Opaque^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<TaskbarOpacity value=^"100^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<TaskbarColor value=^"1644825^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<SkipMetro value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<DisableHotCorner value=^"DisableAll^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item1.Command=computer^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item1.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item2.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item2.Settings=ITEM_DISABLED^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item3.Command=desktop^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item3.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item4.Command=user_documents^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item4.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item5.Command=downloads^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item5.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item6.Command=user_music^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item6.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item7.Command=user_pictures^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item7.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item8.Command=user_videos^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item8.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item9.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item10.Command=control_panel^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item10.Settings=TRACK_RECENT^|NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item11.Command=pc_settings^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item11.Settings=TRACK_RECENT^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<Line^>Item12.Command=run^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<^/MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<EnableContextMenu value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<ShowNewFolder value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<EnableExit value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<EnableExplorer value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<^/Settings^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+"%programfiles%/Open-Shell/StartMenu.exe" -xml "%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
 
 :ending
 echo.
 echo  Finished with tweaking
 echo  Report feedbacks, end of script
 pause
-
-::TO TEST MANY VALUES
-::reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v MouseDataQueueSize /t REG_DWORD /d 0000000a /f
-::reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\kbdclass\Parameters" /v KeyboardDataQueueSize /t REG_DWORD /d 0000000a /f
-::SEENS PROBLEMATIC
-::reg add "HKLM\System\CurrentControlSet\Control\Session Manager" /v "AlpcWakePolicy" /t REG_DWORD /d "1" /f
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaximumSharedReadyQueueSize" /t REG_DWORD /d "1" /f
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DisableAutoBoost" /t REG_DWORD /d "1" /f
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DistributeTimers" /t REG_DWORD /d "1" /f
-::QUESTIONABLE
-::bcdedit /set linearaddress57 OptOut
-::bcdedit /set increaseuserva 268435328
-::bcdedit /set firstmegabytepolicy UseAll
-::bcdedit /set avoidlowmemory 0x8000000
-::bcdedit /set nolowmem Yes
-:: Enable All Folders in Explorer Navigation Panel ?????????????????????????????
-:: reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "NavPaneShowAllFolders" /t REG_DWORD /d "1" /f >NUL 2>&1
