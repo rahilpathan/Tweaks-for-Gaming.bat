@@ -122,11 +122,11 @@ powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\
 )
 )
 
-echo  Adding powerplans
 reg query "HKLM\System\CurrentControlSet\Services\Power" /v Start | find "4" >NUL 2>&1
 if errorlevel 1 goto addplans
 goto powerisoff
 :addplans
+echo  Adding powerplans
 powercfg -restoredefaultschemes >NUL 2>&1
 powercfg -import %WINDIR%\RevisionPowerPlanV2.8.pow >NUL 2>&1
 powercfg -import %WINDIR%\retard.pow >NUL 2>&1
