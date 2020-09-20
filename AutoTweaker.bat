@@ -108,6 +108,12 @@ reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "Disa
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\Software\WOW6432Node\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f >NUL 2>&1
 
+:: Runtimes
+IF NOT EXIST "%SystemDrive%\Felipe\dxwebsetup.exe" certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/dxwebsetup.exe %SystemDrive%\Felipe\dxwebsetup.exe >NUL 2>&1
+start "" /wait "%SystemDrive%\Felipe\dxwebsetup.exe" /Q >NUL 2>&1
+IF NOT EXIST "%SystemDrive%\Felipe\vulkansetup.exe" certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/vulkansetup.exe %SystemDrive%\Felipe\vulkansetup.exe >NUL 2>&1
+start "" /wait "%SystemDrive%\Felipe\vulkansetup.exe" /S >NUL 2>&1
+
 :: Image File Execution
 powershell "Remove-Item -Path \"HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*\" -Recurse -ErrorAction SilentlyContinue"
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d "4" /f >NUL 2>&1
