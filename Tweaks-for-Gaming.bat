@@ -130,6 +130,10 @@ powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\
 )
 
 echo  Adding powerplans
+reg query "HKLM\System\CurrentControlSet\Services\Power" /v Start | find "4" >NUL 2>&1
+if errorlevel 1 goto addplans
+goto powerisoff
+:addplans
 powercfg -restoredefaultschemes >NUL 2>&1
 powercfg -import %WINDIR%\RevisionPowerPlanV2.8.pow >NUL 2>&1
 powercfg -import %WINDIR%\retard.pow >NUL 2>&1
@@ -139,6 +143,7 @@ for /f "tokens=4" %%f in ('powercfg -list ^| findstr /C:"Revision"') do set GUID
 powercfg -setactive %GUID% >NUL 2>&1
 powercfg -attributes sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad -ATTRIB_HIDE >NUL 2>&1
 powercfg -setacvalueindex scheme_current sub_processor 5d76a2ca-e8c0-402f-a133-2158492d58ad 1 >NUL 2>&1
+:powerisoff
 
 echo  Enabling Windows Components
 dism /online /enable-feature /featurename:DesktopExperience /all /norestart >NUL 2>&1
