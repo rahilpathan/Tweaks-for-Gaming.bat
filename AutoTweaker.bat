@@ -1300,79 +1300,79 @@ reg add "HKCU\Software\Sysinternals\Process Explorer\ProcessColumns" /v "16" /t 
 reg add "HKCU\Software\Sysinternals\Process Explorer\VirusTotal" /v "VirusTotalTermsAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 ::OpenShell
 del "%programfiles%\Open-Shell\Menu Settings.xml" >NUL 2>&1
-echo ^<?xml version=^"1.0^"?^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Settings component=^"StartMenu^" version=^"4.4.142^"^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuStyle value=^"Win7^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ShiftClick value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ShiftWin value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<AllProgramsMetro value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<OpenPrograms value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ProgramsMenuDelay value=^"400^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<RecentPrograms value=^"None^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableJumplists value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<HybridShutdown value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<StartScreenShortcut value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<AutoStart value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<HighlightNew value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<HighlightNewApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<CheckWinUpdates value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SplitMenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<InfotipDelay value=^"0,0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<DragHideDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableAccessibility value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<DelayIcons value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SearchMetroApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SearchInternet value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MainMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SubMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuFadeSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuShadow value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkinW7 value=^"Dark^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkinVariationW7 value=^"^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>USER_IMAGE=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>SMALL_ICONS=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>LARGE_FONT=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>ALL_DARK=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>SCROLL=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>GLYPHS=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<^/SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<CustomTaskbar value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<TaskbarLook value=^"Opaque^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<TaskbarOpacity value=^"100^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<TaskbarColor value=^"1644825^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<SkipMetro value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<DisableHotCorner value=^"DisableAll^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item1.Command=computer^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item1.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item2.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item2.Settings=ITEM_DISABLED^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item3.Command=desktop^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item3.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item4.Command=user_documents^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item4.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item5.Command=downloads^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item5.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item6.Command=user_music^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item6.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item7.Command=user_pictures^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item7.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item8.Command=user_videos^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item8.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item9.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item10.Command=control_panel^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item10.Settings=TRACK_RECENT^|NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item11.Command=pc_settings^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<Line^>Item11.Settings=TRACK_RECENT^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<?xml version=^"1.0^"?^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Settings component=^"StartMenu^" version=^"4.4.142^"^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<MenuStyle value=^"Win7^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<ShiftClick value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<ShiftWin value=^"Nothing^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<AllProgramsMetro value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<OpenPrograms value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<ProgramsMenuDelay value=^"400^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<RecentPrograms value=^"None^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<EnableJumplists value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<HybridShutdown value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<StartScreenShortcut value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<AutoStart value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<HighlightNew value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<HighlightNewApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<CheckWinUpdates value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<MenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SplitMenuDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<InfotipDelay value=^"0,0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<DragHideDelay value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<EnableAccessibility value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<DelayIcons value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SearchMetroApps value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SearchInternet value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<MainMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SubMenuAnimationSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<MenuFadeSpeed value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<MenuShadow value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SkinW7 value=^"Dark^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SkinVariationW7 value=^"^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>USER_IMAGE=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>SMALL_ICONS=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>LARGE_FONT=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>ALL_DARK=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>SCROLL=1^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>GLYPHS=0^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<^/SkinOptionsW7^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<CustomTaskbar value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<TaskbarLook value=^"Opaque^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<TaskbarOpacity value=^"100^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<TaskbarColor value=^"1644825^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<SkipMetro value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<DisableHotCorner value=^"DisableAll^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item1.Command=computer^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item1.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item2.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item2.Settings=ITEM_DISABLED^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item3.Command=desktop^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item3.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item4.Command=user_documents^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item4.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item5.Command=downloads^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item5.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item6.Command=user_music^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item6.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item7.Command=user_pictures^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item7.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item8.Command=user_videos^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item8.Settings=NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item9.Command=separator^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item10.Command=control_panel^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item10.Settings=TRACK_RECENT^|NOEXPAND^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item11.Command=pc_settings^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<Line^>Item11.Settings=TRACK_RECENT^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
 echo ^<Line^>Item12.Command=run^<^/Line^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<^/MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableContextMenu value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<ShowNewFolder value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableExit value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<EnableExplorer value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
-echo ^<^/Settings^> >>"%programfiles%/Open-Shell/Menu Settings.xml"
+echo ^<^/MenuItems7^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<EnableContextMenu value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<ShowNewFolder value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<EnableExit value=^"1^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<EnableExplorer value=^"0^"^/^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
+echo ^<^/Settings^> >>"%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
 "%programfiles%/Open-Shell/StartMenu.exe" -xml "%programfiles%/Open-Shell/Menu Settings.xml" >NUL 2>&1
 
 ECHO  Adding host file
