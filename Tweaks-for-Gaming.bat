@@ -992,8 +992,8 @@ reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /
 echo %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
 :: OldNewExplorer
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer32.dll %windir%/OldNewExplorer32.dll >NUL 2>&1
-certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/blob/master/files/OldNewExplorer64.dll %windir%/OldNewExplorer64.dll >NUL 2>&1
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer32.dll %windir%/OldNewExplorer32.dll >NUL 2>&1
+certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer64.dll %windir%/OldNewExplorer64.dll >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoRibbon" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoCaption" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoIcon" /t REG_DWORD /d "1" /f >NUL 2>&1
