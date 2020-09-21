@@ -127,7 +127,40 @@ powershell "$content = [System.IO.File]::ReadAllText('%WinDir%\Resources\Themes\
 )
 )
 
+:: Disabling Devices Platform Connection that synchronizes user data and telemetry
+for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
+reg add "%%a" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+for /F "tokens=*" %%z IN ("%%a") DO (
+set STR=%%z
+set STR=!STR:HKLM\System\CurrentControlSet\services\=!
+)
+)
+
+:: Disabling Link power management mode
+for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /S /F "EnableHIPM"^| FINDSTR /V "EnableHIPM"') DO (
+reg add "%%a" /v "EnableHIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "%%a" /v "EnableDIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
+for /F "tokens=*" %%z IN ("%%a") DO (
+set STR=%%z
+set STR=!STR:HKLM\System\CurrentControlSet\Services\=!
+)
+)
+
+:: Testing new I/O settings 
+:: NumberOfRequests limits the concurrent requests Windows will make to the drive (to 20)
+:: IoLatencyCap will prevent more requests to be sent if the drive latency is >50ms (aka it's already struggling to satisfy those it's got)
+:: IoTimeoutValue will reset the drive after one second of no response instead of 30, which will make any resets that might still happen almost unnoticeable
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters" /v "IoLatencyCap" /t REG_DWORD /d "50" /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters" /v "IoTimeoutValue" /t REG_DWORD /d "1" /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters" /v "NumberOfRequests" /t REG_DWORD /d "20" /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\iaStorAV\Parameters" /v "IoLatencyCap" /t REG_DWORD /d "50" /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\iaStorAV\Parameters" /v "IoTimeoutValue" /t REG_DWORD /d "1" /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\iaStorAV\Parameters" /v "NumberOfRequests" /t REG_DWORD /d "20" /f
+
 :: Installing Power Plan
+IF NOT EXIST %SystemDrive%\Felipe\Disabled.pow certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/Disabled.pow %SystemDrive%\Felipe\Disabled.pow >NUL 2>&1
+IF NOT EXIST %SystemDrive%\Felipe\Enabled.pow certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/Enabled.pow %SystemDrive%\Felipe\Enabled.pow >NUL 2>&1
+
 reg query "HKLM\System\CurrentControlSet\Services\Power" /v Start | find "4" >NUL 2>&1
 if errorlevel 1 goto addplans
 goto powerisoff
@@ -153,6 +186,10 @@ for /F %%g in ('wmic path win32_videocontroller get PNPDeviceID ^| findstr /L "V
 reg add "HKLM\SYSTEM\CurrentControlSet\Enum\%%g\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MSISupported" /t REG_DWORD /d "1" /f >NUL 2>&1
 )
 
+ECHO  Configurating Nvidia...
+certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/nvdrsdb0.bin "C:\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" >NUL 2>&1
+certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/nvdrsdb1.bin "C:\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" >NUL 2>&1
+
 echo  Disabling USB Hub and StorPort idle
 for /F %%a in ('WMIC PATH Win32_USBHub GET DeviceID^| FINDSTR /L "VID_"') DO (
 reg add "HKLM\System\CurrentControlSet\Enum\%%a\Device Parameters" /v "EnhancedPowerManagementEnabled" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -169,31 +206,6 @@ reg add "HKLM\System\CurrentControlSet\Control\usbflags" /v "fid_D3Latency" /t R
 )
 for /F "tokens=*" %%a in ('reg query "HKLM\System\CurrentControlSet\Enum" /S /F "StorPort"^| FINDSTR /E "StorPort"') DO (
 reg add "%%a" /v "EnableIdlePowerManagement" /t REG_DWORD /d "0" /f >NUL 2>&1
-)
-
-echo  Tweaking Services
-for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /F "cdpusersvc"') DO (
-reg add "%%a" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\services\=!
-)
-)
-for /F "eol=E" %%a in ('reg query "HKLM\System\CurrentControlSet\Services" /S /F "EnableHIPM"^| FINDSTR /V "EnableHIPM"') DO (
-reg add "%%a" /v "EnableHIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "%%a" /v "EnableDIPM" /t REG_DWORD /d "0" /f >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\CurrentControlSet\Services\=!
-)
-)
-for /F "eol=E" %%a in ('reg query "HKLM\System\ControlSet001\Services" /S /F "IoLatencyCap"^| FINDSTR /V "IoLatencyCap"') DO (
-reg add "%%a" /v "IoLatencyCap" /t REG_DWORD /d "0" /f >NUL 2>&1
-for /F "tokens=*" %%z IN ("%%a") DO (
-set STR=%%z
-set STR=!STR:HKLM\System\ControlSet001\services\=!
-set STR=!STR:\Parameters=!
-)
 )
 
 echo  Tweaking Network (Be Patient...)
@@ -253,34 +265,34 @@ reg add "HKLM\System\CurrentControlSet\Services\AFD\Parameters" /v "FastSendData
 reg add "HKLM\System\CurrentControlSet\Services\AFD\Parameters" /v "IgnorePushBitOnReceives" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Services\AFD\Parameters" /v "NonBlockingSendSpecialBuffering" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\System\CurrentControlSet\Services\Tcpip6\Parameters" /v "DisabledComponents" /t REG_DWORD /d "255" /f >NUL 2>&1
-for /F %%i in ('wmic path win32_networkadapter get GUID ^| findstr "{"') do reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%i" /v "TcpAckFrequency" /t REG_DWORD /d "1" /f >NUL 2>&1
-for /F %%i in ('wmic path win32_networkadapter get GUID ^| findstr "{"') do reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%i" /v "TcpDelAckTicks" /t REG_DWORD /d "0" /f >NUL 2>&1
-for /F %%i in ('wmic path win32_networkadapter get GUID ^| findstr "{"') do reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%i" /v "TCPNoDelay" /t REG_DWORD /d "1" /f >NUL 2>&1
+for /F %%i in ('wmic path win32_networkadapter get GUID ^| findstr "{"') do (
+reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%i" /v "TcpAckFrequency" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%i" /v "TcpDelAckTicks" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%i" /v "TCPNoDelay" /t REG_DWORD /d "1" /f >NUL 2>&1
+)
 
 :: Adapter
 for /F %%r in ('reg query "HKLM\SYSTEM\ControlSet001\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}" /f "PCI\VEN" /d /s^|Findstr HKEY') do (
 reg add "%%r" /v "*EEE" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "*FlowControl" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "%%r" /v "*InterruptModeration" /t REG_SZ /d "1" /f >NUL 2>&1
+reg add "%%r" /v "*InterruptModeration" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "*JumboPacket" /t REG_SZ /d "1415" /f >NUL 2>&1
 reg add "%%r" /v "*LsoV1IPv4" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*LsoV2IPv4" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*LsoV2IPv6" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*ModernStandbyWoLMagicPacket" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "%%r" /v "*NumRssQueues" /t REG_SZ /d "2" /f >NUL 2>&1
+reg add "%%r" /v "*NumRssQueues" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*PMARPOffload" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "*PMNSOffload" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "*PriorityVLANTag" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "%%r" /v "*ReceiveBuffers" /t REG_SZ /d "1024" /f >NUL 2>&1
+reg add "%%r" /v "*ReceiveBuffers" /t REG_SZ /d "112" /f >NUL 2>&1
 reg add "%%r" /v "*RSS" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*RssBaseProcNumber" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*RssMaxProcNumber" /t REG_SZ /d "1" /f >NUL 2>&1
 reg add "%%r" /v "*SpeedDuplex" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "%%r" /v "*TCPChecksumOffloadIPv4" /t REG_SZ /d "3" /f >NUL 2>&1
-reg add "%%r" /v "*TCPChecksumOffloadIPv6" /t REG_SZ /d "3" /f >NUL 2>&1
-reg add "%%r" /v "*UDPChecksumOffloadIPv4" /t REG_SZ /d "3" /f >NUL 2>&1
-reg add "%%r" /v "*UDPChecksumOffloadIPv6" /t REG_SZ /d "3" /f >NUL 2>&1
-reg add "%%r" /v "*TransmitBuffers" /t REG_SZ /d "1024" /f >NUL 2>&1
+reg add "%%r" /v "*TCPChecksumOffloadIPv4" /t REG_SZ /d "0" /f >NUL 2>&1
+reg add "%%r" /v "*TCPChecksumOffloadIPv6" /t REG_SZ /d "0" /f >NUL 2>&1
+reg add "%%r" /v "*TransmitBuffers" /t REG_SZ /d "112" /f >NUL 2>&1
 reg add "%%r" /v "*WakeOnMagicPacket" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "*WakeOnPattern" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "AdvancedEEE" /t REG_SZ /d "0" /f >NUL 2>&1
@@ -290,12 +302,13 @@ reg add "%%r" /v "EnableGreenEthernet" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "EnablePME" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "EnableTss" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "GigaLite" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "%%r" /v "ITR" /t REG_SZ /d "950" /f >NUL 2>&1
+reg add "%%r" /v "ITR" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "LogLinkStateEvent" /t REG_SZ /d "51" /f >NUL 2>&1
 reg add "%%r" /v "MasterSlave" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "PowerSavingMode" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "ReduceSpeedOnPowerDown" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "S5WakeOnLan" /t REG_SZ /d "0" /f >NUL 2>&1
+reg add "%%r" /v "TxIntDelay" /t REG_SZ /d "5" /f >NUL 2>&1
 reg add "%%r" /v "ULPMode" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "WaitAutoNegComplete" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "%%r" /v "WakeOnLink" /t REG_SZ /d "0" /f >NUL 2>&1
@@ -307,10 +320,8 @@ reg add "%%r" /v "WolShutdownLinkSpeed" /t REG_SZ /d "2" /f >NUL 2>&1
 for /F %%n in ('wmic path win32_networkadapter get PNPDeviceID ^| findstr /L "VEN_"') do (
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\Affinity Policy" /v "AssignmentSetOverride" /t REG_BINARY /d "04" /f >NUL 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\Affinity Policy" /v "DevicePolicy" /t REG_DWORD /d "4" /f >NUL 2>&1
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\%%n\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v "MessageNumberLimit" /t REG_DWORD /d "256" /f >NUL 2>&1
 )
 
-powershell Set-NetTCPSetting -SettingName internet -ScalingHeuristics disabled -ErrorAction SilentlyContinue
 powershell Set-NetTCPSetting -SettingName internet -MinRto 300 -ErrorAction SilentlyContinue
 powershell Disable-NetAdapterLso -Name "*" -ErrorAction SilentlyContinue
 powershell Disable-NetAdapterRsc -Name "*" -ErrorAction SilentlyContinue
@@ -335,15 +346,6 @@ powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_implat -ErrorActi
 :: QoS Packet Scheduler
 powershell Disable-NetAdapterQos -Name "*" -ErrorAction SilentlyContinue
 powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_pacer -ErrorAction SilentlyContinue
-
-:: Bindings that are not common
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_pppoe -ErrorAction SilentlyContinue
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_rdma_ndk -ErrorAction SilentlyContinue
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_ndisuio -ErrorAction SilentlyContinue
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_wfplwf_upper -ErrorAction SilentlyContinue
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_wfplwf_lower -ErrorAction SilentlyContinue
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_netbt -ErrorAction SilentlyContinue
-::powershell Disable-NetAdapterBinding -Name "*" -ComponentID ms_netbios -ErrorAction SilentlyContinue
 
 :: Restarting Adapter
 powershell Restart-NetAdapter -Name "Ethernet" -ErrorAction SilentlyContinue
@@ -547,7 +549,7 @@ reg add "HKLM\System\CurrentControlSet\Services\WinDefend" /v "Start" /t REG_DWO
 reg add "HKLM\System\CurrentControlSet\Services\WmiAcpi" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 :: Winsock IFS Driver
 reg add "HKLM\System\CurrentControlSet\Services\ws2ifsl" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-:: This can be disabled, but it breaks some functionality of the kernel. Null is required for piping thus for some programs to work, like wget and wsusoffline
+:: Null is required for piping thus for some programs to work, like wget and wsusoffline. This can be disabled, but it breaks some functionality of the kernel. 
 reg add "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d "1" /f >NUL 2>&1
 :: This will make the necessary use of static ip
 reg add "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
@@ -590,9 +592,9 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "Kerne
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "DpcWatchdogPeriod" /t REG_DWORD /d "0" /f >NUL 2>&1
 
 :: GPU settings
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "DisableWriteCombining" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "DpiMapIommuContiguous" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v "PreferSystemMemoryContiguous" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" /v "DisableWriteCombining" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Multimedia Profile
 reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "10" /f >NUL 2>&1
@@ -621,50 +623,20 @@ WMIC pagefileset where name="C:\\pagefile.sys" set InitialSize=32768,MaximumSize
 :no16gb
 
 echo  Importing Minimal tweaks
-:: Disable automatic folder type discovery
-Reg.exe delete "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags" /f >NUL 2>&1
-reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "FolderType" /t REG_SZ /d "NotSpecified" /f >NUL 2>&1
-
-:: Remove homegroup from file explorer
-reg add "HKCR\WOW6432Node\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}\ShellFolder" /v "Attributes" /t REG_DWORD /d "2962489444" /f >NUL 2>&1
-reg add "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}\ShellFolder" /v "Attributes" /t REG_DWORD /d "2962489444" /f >NUL 2>&1
-
 :: Mouse Settings
 reg add "HKCU\Control Panel\Mouse" /v "MouseSensitivity" /t REG_SZ /d "10" /f >NUL 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Mouse" /v "MouseHoverTime" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Mouse" /v "MouseSpeed" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Mouse" /v "MouseThreshold1" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Mouse" /v "MouseThreshold2" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Mouse" /v "MouseSpeed" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Mouse" /v "MouseThreshold1" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Mouse" /v "MouseThreshold2" /t REG_SZ /d "0" /f >NUL 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Mouse" /v "Beep" /t REG_SZ /d "No" /f >NUL 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Mouse" /v "ExtendedSounds" /t REG_SZ /d "No" /f >NUL 2>&1
 
-:: Mouse Pointers Scheme None
-reg add "HKCU\Control Panel\Cursors" /v "AppStarting" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "Arrow" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "ContactVisualization" /t REG_DWORD /d "1" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "Crosshair" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "GestureVisualization" /t REG_DWORD /d "31" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "Hand" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "Help" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "IBeam" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "No" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "NWPen" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "Scheme Source" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "SizeAll" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "SizeNESW" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "SizeNS" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "SizeNWSE" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "SizeWE" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "UpArrow" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /v "Wait" /t REG_EXPAND_SZ /d "" /f >NUL 2>&1
-reg add "HKCU\Control Panel\Cursors" /ve /t REG_SZ /d "" /f >NUL 2>&1
+:: DWM Settings
+reg add "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\Windows\DWM" /v "EnableWindowColorization" /t REG_DWORD /d "0" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\Windows\DWM" /v "EnableAeroPeek" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-:: Disable allow themes to change mouse pointers
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes" /v "ThemeChangesDesktopIcons" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes" /v "ThemeChangesMousePointers" /t REG_DWORD /d "0" /f >NUL 2>&1
+:: Disable automatic folder type discovery
+reg delete "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags" /f >NUL 2>&1
+reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "FolderType" /t REG_SZ /d "NotSpecified" /f >NUL 2>&1
 
 :: Disable Startup Sound
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /f >NUL 2>&1
@@ -676,6 +648,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "S
 :: Disable Sleep
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Power\PowerSettings\abfc2519-3608-4c2a-94ea-171b0ed546ab" /v "ACSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Power\PowerSettings\abfc2519-3608-4c2a-94ea-171b0ed546ab" /v "DCSettingIndex" /t REG_DWORD /d "0" /f >NUL 2>&1
+
+:: Remove homegroup from file explorer
+reg add "HKCR\WOW6432Node\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}\ShellFolder" /v "Attributes" /t REG_DWORD /d "2962489444" /f >NUL 2>&1
+reg add "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}\ShellFolder" /v "Attributes" /t REG_DWORD /d "2962489444" /f >NUL 2>&1
 
 :: Remove Homegroup From Navigation Pane
 reg add "HKCR\CLSID\{B4FB3F98-C1EA-428d-A78A-D1F5659CBA93}\ShellFolder" /v "Attributes" /t REG_DWORD /d "2962489612" /f >NUL 2>&1
@@ -692,7 +668,7 @@ reg add "HKCU\Software\Policies\Microsoft\InputPersonalization" /v "RestrictImpl
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "AltTabSettings" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Show hidden folders
-Reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d "1" /f >NUL 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d "1" /f >NUL 2>&1
 
 :: Disable Show Windows Store Apps On The Taskbar
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "StoreAppsOnTaskbar" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -712,12 +688,10 @@ reg add "HKCU\Software\Microsoft\CTF\LangBar" /v "ExtraIconsOnMinimized" /t REG_
 reg add "HKCU\Software\Microsoft\CTF\LangBar" /v "Transparency" /t REG_DWORD /d "255" /f >NUL 2>&1
 reg add "HKCU\Software\Microsoft\CTF\LangBar" /v "Label" /t REG_DWORD /d "0" /f >NUL 2>&1
 
-:: Control Panel tweaks
+:: Make desktop faster
 reg add "HKU\.DEFAULT\Control Panel\Desktop" /v "ForegroundLockTimeout" /t REG_DWORD /d "0" /f >NUL 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Desktop" /v "MenuShowDelay" /t REG_SZ /d "0" /f >NUL 2>&1
 reg add "HKU\.DEFAULT\Control Panel\Desktop" /v "MouseWheelRouting" /t REG_DWORD /d "0" /f >NUL 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Sound" /v "Beep" /t REG_SZ /d "no" /f >NUL 2>&1
-reg add "HKU\.DEFAULT\Control Panel\Sound" /v "ExtendedSounds" /t REG_SZ /d "no" /f >NUL 2>&1
 
 :: Show file extensions
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d "0" /f >NUL 2>&1
@@ -977,8 +951,6 @@ echo  Settings based on Windows Version
 for /F "tokens=3*" %%A in ('reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v "ProductName"') do set "WinVersion=%%A %%B"
 echo %WinVersion% | find "Windows 7" > nul
 if %errorlevel% equ 0 (
-:: Disabling DWM
-reg add "HKCU\Software\Microsoft\Windows\DWM" /v "Composition" /t REG_DWORD /d "0" /f >NUL 2>&1
 :: Mouse fix
 reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000703d0a0000000000e07a14000000000050b81e0000000000c0f5280000000000" /f >NUL 2>&1
 reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
@@ -988,7 +960,10 @@ reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /
 )
 echo %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
-:: Best Services Disabler
+:: Black
+reg add "HKCU\Software\Classes\Local Settings\MuiCache\4\52C64B7E" /v "@themecpl.dll,-5" /t REG_SZ /d "Color and Appearance" /f >NUL 2>&1
+reg add "HKCU\Software\Classes\Local Settings\MuiCache\4\52C64B7E" /v "@themecpl.dll,-40" /t REG_SZ /d "Desktop Background" /f >NUL 2>&1
+:: Services
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\AeLookupSvc" /v "Start" /t REG_DWORD /d "3" /f >NUL 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\ALG" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\AppIDSvc" /v "Start" /t REG_DWORD /d "3" /f >NUL 2>&1
@@ -1134,6 +1109,8 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\WwanSvc" /v "Start" /t REG_DWORD
 :: OldNewExplorer
 IF NOT EXIST %SystemDrive%\Felipe\OldNewExplorer32.dll certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer32.dll %SystemDrive%\Felipe\OldNewExplorer32.dll >NUL 2>&1
 IF NOT EXIST %SystemDrive%\Felipe\OldNewExplorer64.dll certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer64.dll %SystemDrive%\Felipe\OldNewExplorer64.dll >NUL 2>&1
+cmd /c regsvr32 /s %SystemDrive%\Felipe\OldNewExplorer32.dll >NUL 2>&1
+cmd /c regsvr32 /s %SystemDrive%\Felipe\OldNewExplorer64.dll >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoRibbon" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoCaption" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "NoIcon" /t REG_DWORD /d "1" /f >NUL 2>&1
@@ -1143,8 +1120,6 @@ reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "IEButtons" /t REG_DWORD /d "0" 
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "DriveGrouping" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "HideFolders" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Tihiy\OldNewExplorer" /v "Style" /t REG_DWORD /d "0" /f >NUL 2>&1
-cmd /c regsvr32 /s %SystemDrive%\Felipe\OldNewExplorer32.dll >NUL 2>&1
-cmd /c regsvr32 /s %SystemDrive%\Felipe\OldNewExplorer64.dll >NUL 2>&1
 :: Mouse fix
 reg add "HKCU\Control Panel\Mouse" /v "SmoothMouseXCurve" /t REG_BINARY /d "0000000000000000c0cc0c0000000000809919000000000040662600000000000033330000000000" /f >NUL 2>&1
 reg add add "HKCU\Control Panel\Mouse" /v "SmoothMouseYCurve" /t REG_BINARY /d "0000000000000000000038000000000000007000000000000000a800000000000000e00000000000" /f >NUL 2>&1
@@ -1228,8 +1203,8 @@ reg add "HKCU\Software\7-Zip\Options" /v "ContextMenu" /t REG_DWORD /d "4132" /f
 :: Process Explorer
 taskkill /f /im procexp64.exe >NUL 2>&1
 IF NOT EXIST %SystemDrive%\Felipe\procexp64.exe certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/procexp64.exe %SystemDrive%\Felipe\procexp64.exe >NUL 2>&1
-IF EXIST %SystemDrive%\Felipe\procexp64.exe reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-IF EXIST %SystemDrive%\Felipe\procexp64.exe reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%SystemDrive%\Felipe\procexp64.exe" /f >NUL 2>&1
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
+IF EXIST "%WINDIR%\procexp64.exe" reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "EulaAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "Windowplacement" /t REG_BINARY /d "2c0000000200000003000000ffffffffffffffffffffffffffffffff75030000110000009506000069020000" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "FindWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000096000000960000000000000000000000" /f >NUL 2>&1
