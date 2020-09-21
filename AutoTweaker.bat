@@ -550,7 +550,6 @@ reg add "HKLM\System\CurrentControlSet\Services\ws2ifsl" /v "Start" /t REG_DWORD
 reg add "HKLM\System\CurrentControlSet\Services\Null" /v "Start" /t REG_DWORD /d "1" /f >NUL 2>&1
 :: This will make the necessary use of static ip
 reg add "HKLM\System\CurrentControlSet\Services\AFD" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-reg add "HKLM\System\CurrentControlSet\Services\Dhcp" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
 
 echo  Importing Main tweaks
 :: Process Scheduling
@@ -988,6 +987,7 @@ reg add "HKLM\System\CurrentControlSet\Services\atapi" /v "Start" /t REG_DWORD /
 )
 echo %WinVersion% | find "Windows 8.1" > nul
 if %errorlevel% equ 0 (
+:: Best Services DisableR
 :: OldNewExplorer
 IF NOT EXIST %SystemDrive%\Felipe\OldNewExplorer32.dll certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer32.dll %SystemDrive%\Felipe\OldNewExplorer32.dll >NUL 2>&1
 IF NOT EXIST %SystemDrive%\Felipe\OldNewExplorer64.dll certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/OldNewExplorer64.dll %SystemDrive%\Felipe\OldNewExplorer64.dll >NUL 2>&1
@@ -1057,96 +1057,6 @@ rd /s /q "%HOMEPATH%\appdata\Roaming\discord\0.0.308\modules\discord_Spellcheck"
 attrib +r "%localappdata%\Discord\Update.exe" >NUL 2>&1
 del "%userprofile%\Desktop\Discord.lnk" >NUL 2>&1
 mklink "%userprofile%\Desktop\Discord.lnk" "%localappdata%\Discord\app-0.0.308\Discord.exe" >NUL 2>&1
-:: Spotify
-taskkill /f /im Spotify.exe >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\SpotifyMigrator.exe" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\SpotifyStartupTask.exe" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Buddy-list.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Concert.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Concerts.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Error.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Findfriends.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Legacy-lyrics.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Lyrics.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\Apps\Show.spa" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\am.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ar.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ar.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\bg.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\bn.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ca.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\cs.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\cs.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\da.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\de.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\de.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\el.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\el.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\en-GB.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\es.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\es.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\es-419.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\es-419.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\et.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fa.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fi.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fi.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fil.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fr.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fr.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\fr-CA.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\gu.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\he.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\he.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\hi.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\hr.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\hu.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\hu.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\id.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\id.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\it.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\it.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ja.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ja.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\kn.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ko.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ko.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\lt.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\lv.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ml.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\mr.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ms.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ms.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\nb.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\nl.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\nl.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\pl.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\pl.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\pt-PT.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\pt-BR.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\pt-BR.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ro.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ru.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ru.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\sk.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\sl.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\sr.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\sv.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\sv.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\sw.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\ta.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\te.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\th.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\th.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\tr.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\tr.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\uk.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\vi.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\vi.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\zh-CN.pak" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\zh-Hant.mo" >NUL 2>&1
-del /f/s/q "%appdata%\Spotify\locales\zh-TW.pak" >NUL 2>&1
-
 :: Google Chrome
 taskkill /f /im chrome.exe >NUL 2>&1
 IF NOT EXIST "C:\Program Files\Google\Chrome\Application\chrome.exe" IF NOT EXIST %SystemDrive%\Felipe\ChromeSetup.exe certutil -urlcache -Unicode -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/ChromeSetup.exe %SystemDrive%\Felipe\ChromeSetup.exe >NUL 2>&1
