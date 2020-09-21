@@ -1229,7 +1229,7 @@ reg add "HKCU\Software\7-Zip\Options" /v "ContextMenu" /t REG_DWORD /d "4132" /f
 taskkill /f /im procexp64.exe >NUL 2>&1
 IF NOT EXIST %SystemDrive%\Felipe\procexp64.exe certutil -urlcache -split -f https://github.com/Felipe8581/GamingTweaks/raw/master/files/procexp64.exe %SystemDrive%\Felipe\procexp64.exe >NUL 2>&1
 IF EXIST %SystemDrive%\Felipe\procexp64.exe reg add "HKLM\System\CurrentControlSet\Services\PCW" /v "Start" /t REG_DWORD /d "4" /f >NUL 2>&1
-IF EXIST %SystemDrive%\Felipe\procexp64.exe reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%WINDIR%\procexp64.exe" /f >NUL 2>&1
+IF EXIST %SystemDrive%\Felipe\procexp64.exe reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe" /v "Debugger" /t REG_SZ /d "%SystemDrive%\Felipe\procexp64.exe" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "EulaAccepted" /t REG_DWORD /d "1" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "Windowplacement" /t REG_BINARY /d "2c0000000200000003000000ffffffffffffffffffffffffffffffff75030000110000009506000069020000" /f >NUL 2>&1
 reg add "HKCU\Software\Sysinternals\Process Explorer" /v "FindWindowplacement" /t REG_BINARY /d "2c00000000000000000000000000000000000000000000000000000096000000960000000000000000000000" /f >NUL 2>&1
